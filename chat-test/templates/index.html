@@ -28,7 +28,6 @@
   --bg-4: #232941;
   --border: #2a3148;
   --border-soft: rgba(255, 255, 255, 0.055);
-  --border-glow: rgba(139, 92, 246, 0.35);
 
   --text: #f0f3ff;
   --text-dim: #a3abc6;
@@ -41,7 +40,6 @@
   --cyan: #22d3ee;
   --green: #10b981;
   --green-glow: rgba(16, 185, 129, 0.55);
-  --amber: #f59e0b;
   --red: #ef4444;
 
   --grad-me: linear-gradient(135deg, #8b5cf6 0%, #a855f7 40%, #ec4899 100%);
@@ -58,7 +56,6 @@
   --shadow-md: 0 8px 26px rgba(0, 0, 0, 0.42);
   --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.55);
   --glow: 0 0 32px rgba(139, 92, 246, 0.45);
-  --glow-pink: 0 0 32px rgba(236, 72, 153, 0.45);
 
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
   --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -81,7 +78,7 @@ html, body {
 ::selection { background: rgba(139, 92, 246, 0.4); color: #fff; }
 
 /* ═══════════════════════════════════════════════════════════════════
-   ANIMATED BACKGROUND — AURORA + GRID + PARTICLES
+   BACKGROUND — سبک، ثابت، بدون لگ
    ═══════════════════════════════════════════════════════════════════ */
 .bg-stage {
   position: fixed;
@@ -89,99 +86,21 @@ html, body {
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
+  background:
+    radial-gradient(900px 500px at 85% -10%, rgba(139, 92, 246, 0.22), transparent 60%),
+    radial-gradient(800px 450px at 10% 110%, rgba(236, 72, 153, 0.16), transparent 60%),
+    radial-gradient(700px 400px at 50% 50%, rgba(34, 211, 238, 0.05), transparent 60%);
 }
 
-.aurora {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(100px);
-  opacity: 0.55;
-  will-change: transform;
-}
-
-.aurora.a1 {
-  width: 60vw; height: 60vw;
-  max-width: 800px; max-height: 800px;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.7), transparent 70%);
-  top: -20%; right: -15%;
-  animation: auroraFloat1 18s ease-in-out infinite;
-}
-
-.aurora.a2 {
-  width: 55vw; height: 55vw;
-  max-width: 700px; max-height: 700px;
-  background: radial-gradient(circle, rgba(236, 72, 153, 0.55), transparent 70%);
-  bottom: -25%; left: -20%;
-  animation: auroraFloat2 22s ease-in-out infinite;
-}
-
-.aurora.a3 {
-  width: 45vw; height: 45vw;
-  max-width: 600px; max-height: 600px;
-  background: radial-gradient(circle, rgba(34, 211, 238, 0.35), transparent 70%);
-  top: 40%; left: 50%;
-  animation: auroraFloat3 26s ease-in-out infinite;
-}
-
-@keyframes auroraFloat1 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33%      { transform: translate(-8%, 6%) scale(1.12); }
-  66%      { transform: translate(5%, -4%) scale(0.94); }
-}
-
-@keyframes auroraFloat2 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50%      { transform: translate(10%, -8%) scale(1.15); }
-}
-
-@keyframes auroraFloat3 {
-  0%, 100% { transform: translate(-50%, -50%) scale(1); }
-  40%      { transform: translate(-58%, -42%) scale(1.08); }
-  80%      { transform: translate(-42%, -58%) scale(0.92); }
-}
-
-.grid-overlay {
+.bg-stage::after {
+  content: '';
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(139, 92, 246, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(139, 92, 246, 0.045) 1px, transparent 1px);
-  background-size: 42px 42px;
-  mask-image: radial-gradient(ellipse at center, black 20%, transparent 78%);
-  -webkit-mask-image: radial-gradient(ellipse at center, black 20%, transparent 78%);
-  animation: gridDrift 40s linear infinite;
-}
-
-@keyframes gridDrift {
-  from { background-position: 0 0, 0 0; }
-  to   { background-position: 42px 42px, 42px 42px; }
-}
-
-.noise-overlay {
-  position: absolute;
-  inset: 0;
-  opacity: 0.025;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  mix-blend-mode: overlay;
-}
-
-/* ── Floating particles ── */
-.particle {
-  position: absolute;
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: rgba(167, 139, 250, 0.7);
-  box-shadow: 0 0 8px rgba(167, 139, 250, 0.9);
-  animation: particleRise linear infinite;
-  will-change: transform, opacity;
-}
-
-@keyframes particleRise {
-  0%   { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
-  10%  { opacity: 1; }
-  90%  { opacity: 1; }
-  100% { transform: translateY(-100vh) translateX(var(--drift, 40px)) scale(0.4); opacity: 0; }
+    linear-gradient(rgba(139, 92, 246, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139, 92, 246, 0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: 0.7;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -195,9 +114,7 @@ html, body {
   height: 100dvh;
   max-width: 880px;
   margin: 0 auto;
-  background: linear-gradient(180deg, rgba(10, 13, 23, 0.82), rgba(5, 6, 12, 0.96));
-  backdrop-filter: blur(28px) saturate(140%);
-  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  background: linear-gradient(180deg, rgba(10, 13, 23, 0.92), rgba(5, 6, 12, 0.98));
   border-left: 1px solid var(--border-soft);
   border-right: 1px solid var(--border-soft);
   overflow: hidden;
@@ -213,9 +130,7 @@ html, body {
   align-items: center;
   gap: 14px;
   padding: 14px 20px;
-  background: linear-gradient(180deg, rgba(17, 21, 34, 0.95), rgba(10, 13, 23, 0.75));
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: linear-gradient(180deg, rgba(17, 21, 34, 0.98), rgba(10, 13, 23, 0.85));
   border-bottom: 1px solid var(--border-soft);
   flex-shrink: 0;
   z-index: 20;
@@ -283,24 +198,12 @@ html, body {
   background: var(--grad-anil);
   top: 0; right: 0;
   z-index: 3;
-  animation: bobA 3.5s ease-in-out infinite;
 }
 
 .avatar-mini.elshan {
   background: var(--grad-elshan);
   bottom: 0; left: 0;
   z-index: 2;
-  animation: bobB 3.5s ease-in-out infinite;
-}
-
-@keyframes bobA {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-2px); }
-}
-
-@keyframes bobB {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(2px); }
 }
 
 .avatars-stack:hover .avatar-mini { transform: scale(1.12) rotate(-6deg); z-index: 10; }
@@ -470,15 +373,6 @@ html, body {
   box-shadow: 0 0 60px rgba(139, 92, 246, 0.35), inset 0 0 40px rgba(167, 139, 250, 0.15);
 }
 
-.empty-orb::before {
-  content: '';
-  position: absolute;
-  inset: -12px;
-  border-radius: 50%;
-  border: 1px dashed rgba(167, 139, 250, 0.35);
-  animation: spinSlow 12s linear infinite reverse;
-}
-
 @keyframes floatOrb {
   0%, 100% { transform: translateY(0) rotate(0deg); }
   50%      { transform: translateY(-14px) rotate(6deg); }
@@ -521,7 +415,6 @@ html, body {
   border-radius: 999px;
   background: rgba(24, 29, 46, 0.6);
   border: 1px solid var(--border-soft);
-  backdrop-filter: blur(6px);
 }
 
 /* ── Message row ── */
@@ -735,7 +628,6 @@ html, body {
   border-radius: 999px;
   box-shadow: none;
   font-weight: 500;
-  backdrop-filter: blur(6px);
 }
 
 .msg-row.system .msg-bubble::before { display: none; }
@@ -801,7 +693,6 @@ html, body {
 .input-bar {
   padding: 10px 14px calc(12px + env(safe-area-inset-bottom, 0px));
   background: linear-gradient(0deg, rgba(5, 6, 12, 0.98), rgba(10, 13, 23, 0.85));
-  backdrop-filter: blur(20px);
   border-top: 1px solid var(--border-soft);
   position: relative;
   flex-shrink: 0;
@@ -893,19 +784,6 @@ html, body {
   box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
   position: relative;
   overflow: hidden;
-  will-change: transform;
-}
-
-.send-btn::before {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: 50%;
-  background: conic-gradient(from 0deg, var(--accent), var(--accent-3), var(--cyan), var(--accent));
-  opacity: 0;
-  transition: opacity 0.3s;
-  z-index: -1;
-  animation: spinSlow 3s linear infinite;
 }
 
 .send-btn:not(:disabled):hover {
@@ -913,7 +791,6 @@ html, body {
   box-shadow: 0 8px 28px rgba(139, 92, 246, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
-.send-btn:not(:disabled):hover::before { opacity: 1; }
 .send-btn:not(:disabled):active { transform: scale(0.92); }
 
 .send-btn:disabled {
@@ -1056,8 +933,6 @@ html, body {
   position: fixed;
   inset: 0;
   background: rgba(5, 6, 12, 0.88);
-  backdrop-filter: blur(16px) saturate(140%);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
   z-index: 1000;
   display: grid;
   place-items: center;
@@ -1125,15 +1000,6 @@ html, body {
   position: relative;
 }
 
-.modal-icon::after {
-  content: '';
-  position: absolute;
-  inset: -8px;
-  border-radius: 30px;
-  border: 1px solid rgba(167, 139, 250, 0.35);
-  animation: spinSlow 15s linear infinite reverse;
-}
-
 .modal-title {
   font-size: 24px;
   font-weight: 800;
@@ -1197,9 +1063,7 @@ html, body {
   background: radial-gradient(circle at center, rgba(139, 92, 246, 0.22), transparent 70%);
 }
 
-.name-btn:hover {
-  transform: translateY(-4px);
-}
+.name-btn:hover { transform: translateY(-4px); }
 
 .name-btn.anil:hover {
   border-color: var(--accent-3);
@@ -1313,7 +1177,6 @@ html, body {
   max-width: 90vw;
   opacity: 0;
   pointer-events: none;
-  backdrop-filter: blur(16px);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1334,7 +1197,6 @@ html, body {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.95);
-  backdrop-filter: blur(20px);
   z-index: 3000;
   display: none;
   place-items: center;
@@ -1416,7 +1278,6 @@ html, body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-  .aurora, .grid-overlay, .particle { display: none; }
 }
 
 :focus-visible {
@@ -1428,15 +1289,8 @@ html, body {
 </head>
 <body>
 
-<!-- ═══════════════ ANIMATED BACKGROUND ═══════════════ -->
-<div class="bg-stage" aria-hidden="true">
-  <div class="aurora a1"></div>
-  <div class="aurora a2"></div>
-  <div class="aurora a3"></div>
-  <div class="grid-overlay"></div>
-  <div class="noise-overlay"></div>
-  <div id="particles"></div>
-</div>
+<!-- ═══════════════ BACKGROUND ═══════════════ -->
+<div class="bg-stage" aria-hidden="true"></div>
 
 <!-- ═══════════════ APP ═══════════════ -->
 <div class="app">
@@ -1601,7 +1455,6 @@ html, body {
   const lightbox      = $('lightbox');
   const lightboxClose = $('lightbox-close');
   const toastEl       = $('toast');
-  const particlesEl   = $('particles');
 
   let username    = sessionStorage.getItem('messenger_username') || '';
   let socket      = null;
@@ -1610,32 +1463,6 @@ html, body {
   let isTyping    = false;
   let isAtBottom  = true;
   const renderedIds = new Set();
-
-  /* ═══════════ PARTICLE GENERATOR ═══════════ */
-  function spawnParticles() {
-    const count = window.innerWidth < 600 ? 14 : 28;
-    for (let i = 0; i < count; i++) {
-      const p = document.createElement('div');
-      p.className = 'particle';
-      p.style.left = Math.random() * 100 + '%';
-      p.style.bottom = '-10px';
-      p.style.setProperty('--drift', (Math.random() * 120 - 60) + 'px');
-      const dur = 12 + Math.random() * 18;
-      p.style.animationDuration = dur + 's';
-      p.style.animationDelay = '-' + Math.random() * dur + 's';
-      const scale = 0.5 + Math.random() * 1.5;
-      p.style.transform = `scale(${scale})`;
-      p.style.opacity = 0.3 + Math.random() * 0.5;
-      if (Math.random() > 0.7) {
-        p.style.background = 'rgba(236, 72, 153, 0.7)';
-        p.style.boxShadow = '0 0 8px rgba(236, 72, 153, 0.9)';
-      } else if (Math.random() > 0.85) {
-        p.style.background = 'rgba(34, 211, 238, 0.7)';
-        p.style.boxShadow = '0 0 8px rgba(34, 211, 238, 0.9)';
-      }
-      particlesEl.appendChild(p);
-    }
-  }
 
   /* ═══════════ UTILS ═══════════ */
   function escapeHtml(s) {
@@ -2102,7 +1929,6 @@ html, body {
   sendBtn.addEventListener('click', sendMessage);
 
   /* ═══════════ INIT ═══════════ */
-  spawnParticles();
   connectSocket();
   autoResize();
   updateSendBtn();
