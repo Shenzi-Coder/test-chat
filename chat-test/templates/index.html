@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>چت تست</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Tahoma, sans-serif;
+      background: #0b0f1a;
+      color: #e6e9f5;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      gap: 12px;
+    }
+    h1 { font-size: 18px; text-align: center; }
+    #status {
+      text-align: center;
+      font-size: 13px;
+      color: #9aa3c0;
+    }
+    #status.connected { color: #22d18a; }
+    #status.disconnected { color: #ff4d5e; }
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      background: #121829;
+      border: 1px solid #2c3554;
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .msg {
+      background: #1a2138;
+      border: 1px solid #2c3554;
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      max-width: 80%;
+      word-wrap: break-word;
+    }
+    .msg.mine {
+      align-self: flex-end;
+      background: #7c5cff;
+      border-color: transparent;
+      color: #fff;
+    }
+    .msg .name {
+      font-size: 11px;
+      font-weight: bold;
+      color: #00d4ff;
+      margin-bottom: 3px;
+    }
+    .msg.mine .name { color: #fff; }
+    .msg.system {
+      background: transparent;
+      border: none;
+      color: #6b7495;
+      font-size: 12px;
+      text-align: center;
+      align-self: center;
+    }
+    #form {
+      display: flex;
+      gap: 8px;
+    }
+    #input {
+      flex: 1;
+      background: #121829;
+      border: 1px solid #2c3554;
+      color: #fff;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 14px;
+      outline: none;
+    }
+    #input:focus { border-color: #7c5cff; }
+    #send {
+      background: #7c5cff;
+      border: none;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #send:hover { background: #9a7bff; }
+    #send:disabled { opacity: 0.5; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+  <h1>💬 چت تست</h1>
+  <div id="status">در حال اتصال...</div>
+
+  <div id="messages"></div>
+
+  <form id="form">
+    <input type="text" id="input" placeholder="پیامت رو بنویس..." autocomplete="off">
+    <button type="submit" id="send" disabled>ارسال</button>
+  </form>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script>
+    (function () {
+      const statusEl = document.getElementById('status');
+      const messagesEl = document.getElementById('messages');
+      const form = document.getElementById('form');
+      const input = document.getElementById('input');
+      const sendBtn = document.getElementById('send');
+
+      // اسم کاربر
+      let username = sessionStorage.getItem('test_username');
+      if (!username) {
+        username = (prompt('اسمت چیه؟') || '').trim().slice(0, 20) || 'مهمان';
+        sessionStorage.setItem('test_username', username);
+      }
+
+      // اتصال
+      const socket = io();
+
+      socket.on('connect', () => {
+        console.log('[socket] connected', socket.id);
+        statusEl.textContent = '✅ متصل شد — ID: ' + socket.id;
+        statusEl.className = 'connected';
+        sendBtn.disabled = false;
+      });
+
+      socket.on('disconnect', (reason) => {
+        console.log('[socket] disconnected', reason);
+        statusEl.textContent = '❌ قطع شد — ' + reason;
+        statusEl.className = 'disconnected';
+        sendBtn.disabled = true;
+      });
+
+      socket.on('connect_error', (err) => {
+        console.log('[socket] connect_error', err);
+        statusEl.textContent = '❌ خطای اتصال: ' + err.message;
+        statusEl.className = 'disconnected';
+      });
+
+      socket.on('system', (data) => {
+        const el = document.createElement('div');
+        el.className = 'msg system';
+        el.textContent = data.msg;
+        messagesEl.appendChild(el);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      });
+
+      socket.on('chat_message', (msg) => {
+        console.log('[chat_message]', msg);
+        const mine = msg.username === username;
+        const el = document.createElement('div');
+        el.className = 'msg' + (mine ? ' mine' : '');
+        el.innerHTML = `
+          <div class="name">${escapeHtml(msg.username)}</div>
+          <div>${escapeHtml(msg.text)}</div>
+        `;
+        messagesEl.appendChild(el);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      });
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const text = input.value.trim();
+        if (!text) return;
+        console.log('[send]', text);
+        socket.emit('chat_message', {
+          username,
+          text,
+        });
+        input.value = '';
+        input.focus();
+      });
+
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+    })();
+  </script>
+
+</body>
+</html>
