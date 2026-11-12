@@ -35,11 +35,34 @@ socketio = SocketIO(
 )
 
 # ─────────────────────────────────────────────
+#  Profiles (حساب‌های کاربری)
+# ─────────────────────────────────────────────
+PROFILES = {
+    "anil": {
+        "name": "Kawaii Ghost",
+        "username": "@purple_kitty",
+        "avatar": "https://cdn.imgurl.ir/uploads/144791_.png",
+        "bio": "گربه‌های بنفش، استایل کیوت و یه ذره ترسناک... 🎀🖤",
+        "theme": "purple",
+        "emoji": "🌸",
+    },
+    "elshan": {
+        "name": "GHOSTFACE",
+        "username": "@ghostface_official",
+        "avatar": "https://cdn.imgurl.ir/uploads/q998430_.jpg",
+        "bio": "ترس در تاریکی پنهان است...<br>دنبال من نگرد، خودم پیدات می‌کنم.",
+        "theme": "mono",
+        "emoji": "⚡",
+    },
+}
+
+
+# ─────────────────────────────────────────────
 #  State (in-memory)
 # ─────────────────────────────────────────────
 lock = threading.Lock()
 active_connections = 0                # تعداد اتصال‌های همزمان
-online_users = {}                     # sid -> {username, joined_at}
+online_users = {}                     # sid -> {username, joined_at, profile_id}
 chat_history = deque(maxlen=MAX_HISTORY)  # پیام‌های آخر
 typing_users = {}                     # sid -> timestamp آخرین typing
 
@@ -62,6 +85,16 @@ def get_online_usernames():
     return seen
 
 
+def get_online_profile_ids():
+    """لیست id پروفایل‌های آنلاین."""
+    seen = []
+    for info in online_users.values():
+        pid = info.get("profile_id")
+        if pid and pid not in seen:
+            seen.append(pid)
+    return seen
+
+
 def system_message(text, msg_type="system"):
     """ساخت پیام سیستمی."""
     return {
@@ -78,11 +111,12 @@ def broadcast_online():
         "online": active_connections,
         "max": MAX_CONNECTIONS,
         "users": get_online_usernames(),
+        "profiles": get_online_profile_ids(),
     }, to="chat")
 
 
 # ─────────────────────────────────────────────
-#  Routes
+#  Routes — Chat
 # ─────────────────────────────────────────────
 @app.route("/")
 def index():
@@ -96,7 +130,46 @@ def status():
             "online": active_connections,
             "max": MAX_CONNECTIONS,
             "users": get_online_usernames(),
+            "profiles": get_online_profile_ids(),
         })
+
+
+# ─────────────────────────────────────────────
+#  Routes — Accounts / Profiles
+# ─────────────────────────────────────────────
+@app.route("/login")
+def login_page():
+    """صفحه‌ی انتخاب حساب."""
+    return render_template("login.html", profiles=PROFILES)
+
+
+@app.route("/profile/<user_id>")
+def profile_page(user_id):
+    """صفحه‌ی پروفایل هر کاربر."""
+    profile = PROFILES.get(user_id)
+    if not profile:
+        return "پروفایل پیدا نشد", 404
+    return render_template("profile.html", profile=profile, user_id=user_id)
+
+
+@app.route("/api/profiles")
+def api_profiles():
+    """لیست پروفایل‌ها + وضعیت آنلاین برای جاوااسکریپت."""
+    with lock:
+        online_names = get_online_usernames()
+        online_ids = get_online_profile_ids()
+
+    result = {}
+    for uid, p in PROFILES.items():
+        result[uid] = {
+            "name": p["name"],
+            "username": p["username"],
+            "avatar": p["avatar"],
+            "emoji": p["emoji"],
+            "theme": p["theme"],
+            "online": (uid in online_ids) or (p["name"] in online_names),
+        }
+    return jsonify(result)
 
 
 # ─────────────────────────────────────────────
@@ -110,14 +183,21 @@ def on_connect():
             emit("rejected", {"reason": "ظرفیت پر است (حداکثر ۴ نفر)."})
             return False
         active_connections += 1
-        online_users[request.sid] = {"username": "مهمان", "joined_at": now_iso()}
+        online_users[request.sid] = {
+            "username": "مهمان",
+            "joined_at": now_iso(),
+            "profile_id": None,
+        }
 
     emit("connected", {
         "sid": request.sid,
         "online": active_connections,
         "max": MAX_CONNECTIONS,
-        "history": list(chat_history),  # ارسال تاریخچه به کاربر جدید
+        "history": list(chat_history),
         "online_users": get_online_usernames(),
+        "online_profiles": get_online_profile_ids(),
+        "profiles": {uid: {"name": p["name"], "avatar": p["avatar"], "emoji": p["emoji"]}
+                     for uid, p in PROFILES.items()},
     })
 
 
@@ -149,14 +229,24 @@ def on_disconnect():
 # ─────────────────────────────────────────────
 @socketio.on("join_chat")
 def on_join_chat(data):
-    """کاربر با اسمش وارد چت می‌شه."""
-    username = (data or {}).get("username", "").strip()[:20] or "مهمان"
+    """کاربر با اسمش (و اختیاراً profile_id) وارد چت می‌شه."""
+    data = data or {}
+    username = (data.get("username", "") or "").strip()[:20] or "مهمان"
+    profile_id = data.get("profile_id")
+
+    # اگر profile_id معتبر بود، اسم و آواتار از پروفایل گرفته می‌شه
+    if profile_id and profile_id in PROFILES:
+        p = PROFILES[profile_id]
+        username = p["name"]
+    else:
+        profile_id = None
 
     with lock:
         old_name = online_users.get(request.sid, {}).get("username")
         online_users[request.sid] = {
             "username": username,
             "joined_at": now_iso(),
+            "profile_id": profile_id,
         }
 
     join_room("chat")
@@ -169,7 +259,7 @@ def on_join_chat(data):
         socketio.emit("chat_message", msg, to="chat")
 
     broadcast_online()
-    emit("joined", {"username": username})
+    emit("joined", {"username": username, "profile_id": profile_id})
 
 
 # ─────────────────────────────────────────────
@@ -186,6 +276,7 @@ def on_chat_message(data):
         if not info:
             return
         username = info["username"]
+        profile_id = info.get("profile_id")
 
     msg_type = data.get("type", "text")
     content = data.get("content", "")
@@ -210,6 +301,11 @@ def on_chat_message(data):
 
     msg_id = f"{int(time.time() * 1000)}-{request.sid[:6]}"
 
+    # اگر کاربر پروفایل داره، آواتار و اسم پروفایل هم بفرست
+    avatar = None
+    if profile_id and profile_id in PROFILES:
+        avatar = PROFILES[profile_id]["avatar"]
+
     payload = {
         "id": msg_id,
         "type": msg_type,          # text | image | video | audio
@@ -217,19 +313,19 @@ def on_chat_message(data):
         "filename": filename,
         "username": username,
         "sid": request.sid,
+        "profile_id": profile_id,
+        "avatar": avatar,
         "timestamp": data.get("timestamp") or now_iso(),
-        "read_by": [],             # برای تیک خوانده شدن
+        "read_by": [],
         "system": False,
     }
 
     with lock:
         chat_history.append(payload)
-        # کاربر دیگه typing نمی‌کنه
         typing_users.pop(request.sid, None)
 
     socketio.emit("chat_message", payload, to="chat")
 
-    # به‌روزرسانی typing
     socketio.emit("typing_update", {
         "typing": [online_users[s]["username"] for s in typing_users if s in online_users],
     }, to="chat")
@@ -251,7 +347,6 @@ def on_typing(data):
 
         names = [online_users[s]["username"] for s in typing_users if s in online_users]
 
-    # به بقیه بگو (نه خودش)
     socketio.emit("typing_update", {"typing": names}, to="chat", skip_sid=request.sid)
 
 
@@ -271,7 +366,6 @@ def on_mark_read(data):
             return
         reader = info["username"]
 
-        # پیدا کردن پیام توی history
         for msg in chat_history:
             if msg.get("id") == msg_id and not msg.get("system"):
                 if reader not in msg["read_by"]:
