@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#0d0812" />
+<title>پروفایل {{ profile.name }}</title>
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%238b5cf6'/><stop offset='1' stop-color='%23ec4899'/></linearGradient></defs><rect width='100' height='100' rx='24' fill='url(%23g)'/><text x='50' y='68' font-size='56' text-anchor='middle' fill='white'>💜</text></svg>" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════════════════════════════════════════════════════════════
+   RESET
+   ═══════════════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  min-height: 100dvh;
+  font-family: 'Vazirmatn', 'Segoe UI', Tahoma, sans-serif;
+  direction: rtl;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection { background: rgba(139, 92, 246, 0.4); color: #fff; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   BASE
+   ═══════════════════════════════════════════════════════════════════ */
+body {
+  display: grid;
+  place-items: center;
+  padding: 28px 20px calc(28px + env(safe-area-inset-bottom, 0px));
+  transition: background-color 0.5s ease;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ── تم بنفش/کیوت ── */
+body.theme-purple {
+  background-color: #0d0812;
+  background-image:
+    radial-gradient(700px 400px at 80% -10%, rgba(138, 43, 226, 0.28), transparent 60%),
+    radial-gradient(600px 350px at 10% 110%, rgba(255, 105, 180, 0.18), transparent 60%);
+}
+
+/* ── تم سیاه/مونو ── */
+body.theme-mono {
+  background-color: #0a0a0a;
+  background-image:
+    radial-gradient(700px 400px at 80% -10%, rgba(255, 255, 255, 0.06), transparent 60%),
+    radial-gradient(600px 350px at 10% 110%, rgba(255, 255, 255, 0.04), transparent 60%);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PROFILE CARD
+   ═══════════════════════════════════════════════════════════════════ */
+.profile-card {
+  width: 100%;
+  max-width: 380px;
+  border: 1px solid;
+  border-radius: 24px;
+  padding: 42px 32px 32px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.45s ease,
+              border-color 0.35s ease;
+  animation: cardIn 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1;
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(30px) scale(0.94); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.profile-card:hover {
+  transform: translateY(-6px);
+}
+
+/* ── پس‌زمینه چرخان ── */
+.profile-card::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  animation: spinSlow 14s linear infinite;
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.profile-card::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: 23px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+@keyframes spinSlow { to { transform: rotate(360deg); } }
+
+.profile-card > * { position: relative; z-index: 1; }
+
+/* ── تم بنفش ── */
+body.theme-purple .profile-card {
+  background-color: #1a1025;
+  border-color: #3a2550;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.85), 0 0 60px rgba(138, 43, 226, 0.15);
+}
+
+body.theme-purple .profile-card::before {
+  background: conic-gradient(from 0deg, transparent, rgba(138, 43, 226, 0.25), transparent, rgba(255, 105, 180, 0.2), transparent);
+}
+
+body.theme-purple .profile-card::after {
+  background: linear-gradient(180deg, rgba(26, 16, 37, 0.97), rgba(13, 8, 18, 0.99));
+}
+
+body.theme-purple .profile-card:hover {
+  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.85), 0 0 80px rgba(255, 105, 180, 0.3);
+}
+
+/* ── تم مونو ── */
+body.theme-mono .profile-card {
+  background-color: #1a1a1a;
+  border-color: #333;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.85);
+}
+
+body.theme-mono .profile-card::before {
+  background: conic-gradient(from 0deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+}
+
+body.theme-mono .profile-card::after {
+  background: linear-gradient(180deg, rgba(26, 26, 26, 0.97), rgba(10, 10, 10, 0.99));
+}
+
+body.theme-mono .profile-card:hover {
+  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.85), 0 0 60px rgba(255, 255, 255, 0.08);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   AVATAR
+   ═══════════════════════════════════════════════════════════════════ */
+.avatar-container {
+  width: 156px;
+  height: 156px;
+  margin: 0 auto 24px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid;
+  position: relative;
+  transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.4s ease;
+  background: #111;
+  display: grid;
+  place-items: center;
+  font-size: 54px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.avatar-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: filter 0.45s ease, transform 0.45s ease;
+}
+
+.profile-card:hover .avatar-container { transform: scale(1.02); }
+.profile-card:hover .avatar-container img { transform: scale(1.1); }
+
+/* ── تم بنفش ── */
+body.theme-purple .avatar-container {
+  border-color: #8a2be2;
+  box-shadow: 0 0 24px rgba(138, 43, 226, 0.45);
+}
+
+body.theme-purple .profile-card:hover .avatar-container {
+  border-color: #ff69b4;
+  box-shadow: 0 0 38px rgba(255, 105, 180, 0.65);
+}
+
+/* ── تم مونو ── */
+body.theme-mono .avatar-container {
+  border-color: #555;
+  box-shadow: 0 0 22px rgba(255, 255, 255, 0.12);
+}
+
+body.theme-mono .avatar-container img {
+  filter: grayscale(100%) contrast(1.2);
+}
+
+body.theme-mono .profile-card:hover .avatar-container {
+  border-color: #fff;
+  box-shadow: 0 0 34px rgba(255, 255, 255, 0.3);
+}
+
+body.theme-mono .profile-card:hover .avatar-container img {
+  filter: grayscale(0%) contrast(1.1);
+}
+
+/* ── حلقه‌ی نئون ── */
+.avatar-ring {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  animation: spinSlow 8s linear infinite;
+  opacity: 0;
+  transition: opacity 0.4s;
+  pointer-events: none;
+}
+
+.profile-card:hover .avatar-ring { opacity: 0.9; }
+
+body.theme-purple .avatar-ring {
+  background: conic-gradient(from 0deg, transparent, #8a2be2, transparent, #ff69b4, transparent);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+          mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+}
+
+body.theme-mono .avatar-ring {
+  background: conic-gradient(from 0deg, transparent, #fff, transparent);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+          mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+}
+
+.avatar-wrap {
+  position: relative;
+  width: 156px;
+  margin: 0 auto 24px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TEXT
+   ═══════════════════════════════════════════════════════════════════ */
+h2 {
+  margin: 0 0 6px 0;
+  color: #ffffff;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  line-height: 1.25;
+}
+
+body.theme-purple h2 {
+  text-shadow: 0 0 14px rgba(138, 43, 226, 0.9), 0 0 30px rgba(138, 43, 226, 0.4);
+}
+
+body.theme-mono h2 {
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.2);
+}
+
+.username {
+  margin: 0 0 18px 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  direction: ltr;
+  unicode-bidi: embed;
+}
+
+body.theme-purple .username { color: #b388ff; }
+body.theme-mono .username { color: #888; }
+
+.bio {
+  font-size: 0.9rem;
+  line-height: 1.75;
+  margin-bottom: 28px;
+  min-height: 1.75em;
+}
+
+body.theme-purple .bio { color: #d1c4e9; }
+body.theme-mono .bio { color: #aaa; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   BUTTONS
+   ═══════════════════════════════════════════════════════════════════ */
+.btn {
+  display: inline-block;
+  padding: 12px 34px;
+  border-radius: 999px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  transition: background-color 0.3s ease, color 0.3s ease,
+              box-shadow 0.3s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 0.2px;
+}
+
+.btn:active { transform: scale(0.96); }
+
+/* ── تم بنفش ── */
+body.theme-purple .btn {
+  background-color: #6a1b9a;
+  color: #fff;
+  box-shadow: 0 6px 20px rgba(106, 27, 154, 0.45);
+}
+
+body.theme-purple .btn:hover {
+  background-color: #ff69b4;
+  box-shadow: 0 8px 28px rgba(255, 105, 180, 0.6);
+  transform: translateY(-2px);
+}
+
+/* ── تم مونو ── */
+body.theme-mono .btn {
+  background-color: #333;
+  color: #fff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+body.theme-mono .btn:hover {
+  background-color: #fff;
+  color: #000;
+  box-shadow: 0 8px 28px rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   NAV LINKS
+   ═══════════════════════════════════════════════════════════════════ */
+.nav-links {
+  margin-top: 22px;
+  padding-top: 20px;
+  display: flex;
+  gap: 18px;
+  justify-content: center;
+  font-size: 12.5px;
+  border-top: 1px solid;
+}
+
+body.theme-purple .nav-links { border-color: rgba(138, 43, 226, 0.2); }
+body.theme-mono .nav-links { border-color: rgba(255, 255, 255, 0.08); }
+
+.nav-links a {
+  text-decoration: none;
+  transition: color 0.25s ease;
+  position: relative;
+  font-weight: 500;
+}
+
+body.theme-purple .nav-links a { color: #8a2be2; }
+body.theme-purple .nav-links a:hover { color: #ff69b4; }
+
+body.theme-mono .nav-links a { color: #888; }
+body.theme-mono .nav-links a:hover { color: #fff; }
+
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.nav-links a:hover::after { transform: scaleX(1); }
+
+/* ═══════════════════════════════════════════════════════════════════
+   TOAST
+   ═══════════════════════════════════════════════════════════════════ */
+.toast {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%) translateY(120px);
+  padding: 13px 24px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 2000;
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s;
+  max-width: 90vw;
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: 'Vazirmatn', sans-serif;
+  direction: rtl;
+}
+
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+body.theme-purple .toast {
+  background: rgba(26, 16, 37, 0.98);
+  border: 1px solid #8a2be2;
+  color: #fff;
+  box-shadow: 0 10px 30px rgba(138, 43, 226, 0.5);
+}
+
+body.theme-mono .toast {
+  background: rgba(26, 26, 26, 0.98);
+  border: 1px solid #fff;
+  color: #fff;
+  box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════ */
+@media (max-width: 420px) {
+  .profile-card { padding: 36px 24px 26px; }
+  .avatar-wrap, .avatar-container { width: 132px; height: 132px; }
+  .avatar-container { font-size: 46px; }
+  h2 { font-size: 1.4rem; }
+  .username { font-size: 0.88rem; }
+  .bio { font-size: 0.85rem; }
+  .btn { padding: 11px 28px; font-size: 0.88rem; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ACCESSIBILITY
+   ═══════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+</style>
+</head>
+<body class="theme-{{ profile.theme }}">
+
+  <div class="profile-card">
+
+    <div class="avatar-wrap">
+      <div class="avatar-ring"></div>
+      <div class="avatar-container">
+        <img src="{{ profile.avatar }}" alt="{{ profile.name }}" loading="lazy"
+             onerror="this.style.display='none'; this.parentNode.textContent='{{ profile.emoji }}';">
+      </div>
+    </div>
+
+    <h2>{{ profile.name }}</h2>
+    <p class="username">{{ profile.username }}</p>
+    <p class="bio">{{ profile.bio|safe }}</p>
+
+    <button class="btn" id="enter-chat-btn" type="button">
+      ورود به چت
+    </button>
+
+    <div class="nav-links">
+      <a href="/login">تغییر حساب</a>
+      <a href="/">صفحه اصلی</a>
+    </div>
+
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   Profile Page Logic
+   ═══════════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  const PROFILE_ID   = {{ user_id|tojson }};
+  const PROFILE_NAME = {{ profile.name|tojson }};
+
+  const enterBtn = document.getElementById('enter-chat-btn');
+  const toastEl  = document.getElementById('toast');
+
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(window.__toastT);
+    window.__toastT = setTimeout(() => toastEl.classList.remove('show'), 2800);
+  }
+
+  function enterChat() {
+    try {
+      // ذخیره‌ی نام و شناسه‌ی پروفایل برای استفاده در چت
+      sessionStorage.setItem('messenger_username', PROFILE_NAME);
+      sessionStorage.setItem('messenger_profile', PROFILE_ID);
+    } catch (e) {
+      // اگر sessionStorage در دسترس نبود (مثلاً حالت private)
+      toast('ذخیره‌سازی محلی در دسترس نیست');
+    }
+
+    // انتقال به صفحه‌ی چت
+    enterBtn.disabled = true;
+    enterBtn.textContent = 'در حال ورود...';
+    window.location.href = '/';
+  }
+
+  enterBtn.addEventListener('click', enterChat);
+
+  // اگر کاربر از قبل با همین پروفایل وارد شده، دکمه رو متفاوت نشون بده
+  try {
+    const current = sessionStorage.getItem('messenger_profile');
+    if (current === PROFILE_ID) {
+      enterBtn.textContent = 'ادامه‌ی گفتگو →';
+    }
+  } catch (e) {}
+
+  // کلید Enter هم چت رو باز کنه (اگر دکمه فوکوس داشت)
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && document.activeElement === enterBtn) {
+      e.preventDefault();
+      enterChat();
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
