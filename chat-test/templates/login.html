@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#05060c" />
+<title>ورود — پیام‌رسان</title>
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%238b5cf6'/><stop offset='1' stop-color='%23ec4899'/></linearGradient></defs><rect width='100' height='100' rx='24' fill='url(%23g)'/><text x='50' y='68' font-size='56' text-anchor='middle' fill='white'>💜</text></svg>" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════════════════════════════════════════════════════════════
+   RESET & TOKENS
+   ═══════════════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-0: #05060c;
+  --bg-1: #0a0d17;
+  --bg-2: #111522;
+  --bg-3: #181d2e;
+  --bg-4: #232941;
+  --border: #2a3148;
+  --border-soft: rgba(255, 255, 255, 0.055);
+
+  --text: #f0f3ff;
+  --text-dim: #a3abc6;
+  --text-mute: #6a7392;
+
+  --accent: #8b5cf6;
+  --accent-2: #a78bfa;
+  --accent-3: #ec4899;
+  --cyan: #22d3ee;
+  --green: #10b981;
+  --red: #ef4444;
+
+  --grad-brand: linear-gradient(120deg, #a78bfa, #ec4899, #22d3ee);
+  --grad-me: linear-gradient(135deg, #8b5cf6 0%, #a855f7 40%, #ec4899 100%);
+
+  --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.55);
+  --glow: 0 0 32px rgba(139, 92, 246, 0.45);
+
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html, body {
+  min-height: 100dvh;
+  font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: var(--text);
+  direction: rtl;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection { background: rgba(139, 92, 246, 0.4); color: #fff; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   BACKGROUND
+   ═══════════════════════════════════════════════════════════════════ */
+body {
+  background:
+    radial-gradient(900px 500px at 85% -10%, rgba(139, 92, 246, 0.22), transparent 60%),
+    radial-gradient(800px 450px at 10% 110%, rgba(236, 72, 153, 0.16), transparent 60%),
+    radial-gradient(700px 400px at 50% 50%, rgba(34, 211, 238, 0.05), transparent 60%),
+    var(--bg-0);
+  display: grid;
+  place-items: center;
+  padding: 28px 20px calc(28px + env(safe-area-inset-bottom, 0px));
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(139, 92, 246, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139, 92, 246, 0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: 0.7;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   WRAPPER
+   ═══════════════════════════════════════════════════════════════════ */
+.wrap {
+  width: 100%;
+  max-width: 760px;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  animation: pageIn 0.7s var(--expo);
+}
+
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Hero ── */
+.hero-orb {
+  width: 92px;
+  height: 92px;
+  margin: 0 auto 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 44px;
+  background: radial-gradient(circle at 30% 30%, rgba(167, 139, 250, 0.55), rgba(236, 72, 153, 0.3) 60%, transparent 82%);
+  box-shadow: 0 0 60px rgba(139, 92, 246, 0.4), inset 0 0 40px rgba(167, 139, 250, 0.18);
+  animation: floatOrb 4s ease-in-out infinite;
+}
+
+@keyframes floatOrb {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-12px) rotate(6deg); }
+}
+
+h1 {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 10px;
+  background: var(--grad-brand);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradientShift 5s ease infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+
+.sub {
+  color: var(--text-dim);
+  font-size: 14px;
+  line-height: 1.7;
+  margin-bottom: 36px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CARDS
+   ═══════════════════════════════════════════════════════════════════ */
+.cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+@media (max-width: 560px) {
+  .cards { grid-template-columns: 1fr; gap: 14px; }
+  h1 { font-size: 24px; }
+  .hero-orb { width: 76px; height: 76px; font-size: 36px; margin-bottom: 18px; }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 30px 18px 24px;
+  background: linear-gradient(180deg, rgba(24, 29, 46, 0.95), rgba(17, 21, 34, 0.95));
+  border: 2px solid var(--border);
+  border-radius: 26px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.4s var(--spring);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(139, 92, 246, 0.22), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.35s;
+  pointer-events: none;
+}
+
+.card.theme-mono::before {
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.08), transparent 70%);
+}
+
+.card::after {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: conic-gradient(from 0deg, transparent, rgba(139, 92, 246, 0.08), transparent, rgba(236, 72, 153, 0.08), transparent);
+  animation: spinSlow 12s linear infinite;
+  opacity: 0;
+  transition: opacity 0.35s;
+  pointer-events: none;
+}
+
+.card.theme-mono::after {
+  background: conic-gradient(from 0deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+}
+
+@keyframes spinSlow { to { transform: rotate(360deg); } }
+
+.card:hover {
+  transform: translateY(-7px);
+  border-color: var(--accent);
+  box-shadow: 0 22px 55px rgba(139, 92, 246, 0.45), var(--shadow-lg);
+}
+
+.card.theme-mono:hover {
+  border-color: #fff;
+  box-shadow: 0 22px 55px rgba(255, 255, 255, 0.15), var(--shadow-lg);
+}
+
+.card:hover::before,
+.card:hover::after { opacity: 1; }
+
+.card > * { position: relative; z-index: 1; }
+
+/* ── Avatar ── */
+.avatar {
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--accent);
+  box-shadow: 0 0 24px rgba(139, 92, 246, 0.55);
+  transition: transform 0.4s var(--spring), border-color 0.35s, box-shadow 0.35s;
+  flex-shrink: 0;
+  background: var(--bg-3);
+  display: grid;
+  place-items: center;
+  font-size: 34px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.card.theme-mono .avatar {
+  border-color: #555;
+  box-shadow: 0 0 24px rgba(255, 255, 255, 0.15);
+}
+
+.card:hover .avatar { transform: scale(1.08); }
+.card.theme-mono:hover .avatar { border-color: #fff; }
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.card.theme-mono .avatar img {
+  filter: grayscale(100%) contrast(1.2);
+  transition: filter 0.4s;
+}
+
+.card.theme-mono:hover .avatar img {
+  filter: grayscale(0%) contrast(1.1);
+}
+
+/* ── Text ── */
+.name {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  line-height: 1.3;
+}
+
+.uname {
+  font-size: 12.5px;
+  color: #b388ff;
+  font-weight: 500;
+  margin-top: -8px;
+}
+
+.card.theme-mono .uname { color: #888; }
+
+/* ── Badge ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--green);
+  font-weight: 600;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  transition: all 0.3s;
+  margin-top: 2px;
+}
+
+.badge.off {
+  background: rgba(106, 115, 146, 0.15);
+  color: var(--text-mute);
+  border-color: rgba(106, 115, 146, 0.25);
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.badge:not(.off) .dot {
+  animation: pulseGreen 2s ease-in-out infinite;
+}
+
+@keyframes pulseGreen {
+  0%   { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+  70%  { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* ── CTA hint ── */
+.cta-hint {
+  font-size: 11.5px;
+  color: var(--text-mute);
+  margin-top: 4px;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: all 0.3s var(--ease);
+}
+
+.card:hover .cta-hint {
+  opacity: 1;
+  transform: translateY(0);
+  color: var(--accent-2);
+}
+
+.card.theme-mono:hover .cta-hint { color: #ddd; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   FOOTER
+   ═══════════════════════════════════════════════════════════════════ */
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  font-size: 12.5px;
+  color: var(--text-mute);
+  flex-wrap: wrap;
+}
+
+.footer-links a {
+  color: var(--text-mute);
+  text-decoration: none;
+  transition: color 0.25s;
+  position: relative;
+}
+
+.footer-links a:hover { color: var(--accent-2); }
+
+.footer-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--accent-2);
+  transform: scaleX(0);
+  transition: transform 0.3s var(--ease);
+}
+
+.footer-links a:hover::after { transform: scaleX(1); }
+
+/* ═══════════════════════════════════════════════════════════════════
+   ACCESSIBILITY
+   ═══════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="hero-orb">💜</div>
+  <h1>خوش اومدی</h1>
+  <p class="sub">یکی از حساب‌ها رو انتخاب کن تا وارد گفتگو بشی</p>
+
+  <div class="cards">
+    {% for uid, p in profiles.items() %}
+    <a href="/profile/{{ uid }}"
+       class="card theme-{{ p.theme }}"
+       data-user="{{ uid }}"
+       aria-label="ورود با حساب {{ p.name }}">
+      <div class="avatar">
+        <img src="{{ p.avatar }}" alt="{{ p.name }}" loading="lazy"
+             onerror="this.style.display='none'; this.parentNode.textContent='{{ p.emoji }}';">
+      </div>
+      <div class="name">{{ p.name }}</div>
+      <div class="uname">{{ p.username }}</div>
+      <span class="badge" id="badge-{{ uid }}">
+        <span class="dot"></span> در حال بررسی...
+      </span>
+      <span class="cta-hint">ورود به چت ←</span>
+    </a>
+    {% endfor %}
+  </div>
+
+  <div class="footer-links">
+    <a href="/">رفتن مستقیم به چت</a>
+  </div>
+</div>
+
+<script>
+/* بررسی وضعیت آنلاین پروفایل‌ها */
+(function () {
+  'use strict';
+
+  function applyStatus(uid, online) {
+    const b = document.getElementById('badge-' + uid);
+    if (!b) return;
+    if (online) {
+      b.classList.remove('off');
+      b.innerHTML = '<span class="dot"></span> آنلاین';
+    } else {
+      b.classList.add('off');
+      b.innerHTML = '<span class="dot"></span> آفلاین';
+    }
+  }
+
+  function fetchStatus() {
+    fetch('/api/profiles', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!data) return;
+        for (const [uid, p] of Object.entries(data)) {
+          applyStatus(uid, !!p.online);
+        }
+      })
+      .catch(() => {
+        // اگر API در دسترس نبود، همه رو آفلاین نشون بده
+        document.querySelectorAll('.card').forEach((c) => {
+          applyStatus(c.getAttribute('data-user'), false);
+        });
+      });
+  }
+
+  fetchStatus();
+  // هر ۵ ثانیه وضعیت آنلاین رو تازه کن
+  setInterval(fetchStatus, 5000);
+})();
+</script>
+
+</body>
+</html>
