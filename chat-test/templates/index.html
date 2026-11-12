@@ -191,6 +191,13 @@ html, body {
   box-shadow: var(--shadow-sm);
   transition: transform 0.35s var(--spring), z-index 0s;
   cursor: default;
+  overflow: hidden;
+}
+
+.avatar-mini img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .avatar-mini.anil {
@@ -296,6 +303,7 @@ html, body {
   transition: all 0.25s var(--ease);
   position: relative;
   overflow: hidden;
+  text-decoration: none;
 }
 
 .icon-btn::before {
@@ -445,6 +453,13 @@ html, body {
   margin-bottom: 22px;
   position: relative;
   transition: transform 0.2s var(--spring);
+  overflow: hidden;
+}
+
+.msg-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .msg-row:hover .msg-avatar { transform: scale(1.08); }
@@ -1382,6 +1397,9 @@ html, body {
     </div>
 
     <div class="header-actions">
+      <a class="icon-btn" id="profile-btn" href="/login" title="پروفایل" aria-label="پروفایل">
+        <span>💜</span>
+      </a>
       <button class="icon-btn" id="change-name-btn" title="تغییر نام" aria-label="تغییر نام">
         <span>👤</span>
       </button>
@@ -1464,11 +1482,11 @@ html, body {
     <p class="modal-subtitle">اسمت رو انتخاب کن تا وارد گفتگو بشی</p>
 
     <div class="name-options">
-      <button class="name-btn anil" data-name="آنیل">
+      <button class="name-btn anil" data-name="Kawaii Ghost" data-profile="anil">
         <span class="name-emoji">🌸</span>
         <span>آنیل</span>
       </button>
-      <button class="name-btn elshan" data-name="الشن">
+      <button class="name-btn elshan" data-name="GHOSTFACE" data-profile="elshan">
         <span class="name-emoji">⚡</span>
         <span>الشن</span>
       </button>
@@ -1501,7 +1519,7 @@ html, body {
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════════
-   Elshan & Anil Messenger — Client Logic (with Voice)
+   Elshan & Anil Messenger — Client Logic (with Voice + Profiles)
    ═══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -1528,6 +1546,7 @@ html, body {
   const customName    = $('custom-name');
   const confirmName   = $('confirm-name');
   const changeNameBtn = $('change-name-btn');
+  const profileBtn    = $('profile-btn');
   const scrollBtn     = $('scroll-btn');
   const lightbox      = $('lightbox');
   const lightboxClose = $('lightbox-close');
@@ -1538,6 +1557,7 @@ html, body {
   const recCancelBtn  = $('rec-cancel');
 
   let username    = sessionStorage.getItem('messenger_username') || '';
+  let profileId   = sessionStorage.getItem('messenger_profile') || '';
   let socket      = null;
   let pendingFile = null;
   let typingTimer = null;
@@ -1552,6 +1572,9 @@ html, body {
   let recTimer      = null;
   let recSeconds    = 0;
   const MAX_REC_SECONDS = 60;
+
+  /* ── Profiles cache (از سرور می‌گیریم) ── */
+  let profiles = {};
 
   /* ═══════════ UTILS ═══════════ */
   function escapeHtml(s) {
@@ -1607,13 +1630,29 @@ html, body {
   }
 
   function avatarClass(name) {
-    if (name === 'آنیل') return 'anil';
-    if (name === 'الشن') return 'elshan';
+    if (name === 'Kawaii Ghost' || name === 'آنیل') return 'anil';
+    if (name === 'GHOSTFACE' || name === 'الشن') return 'elshan';
     return 'other';
   }
 
   function avatarLetter(name) {
     return name ? name.trim().charAt(0) : '?';
+  }
+
+  /* آواتار: اگر URL بود عکس، وگرنه حرف اول */
+  function makeAvatarElement(name, avatarUrl, extraClass) {
+    const el = document.createElement('div');
+    el.className = 'msg-avatar ' + (extraClass || avatarClass(name));
+    if (avatarUrl) {
+      const img = document.createElement('img');
+      img.src = avatarUrl;
+      img.alt = name || '';
+      img.loading = 'lazy';
+      el.appendChild(img);
+    } else {
+      el.textContent = avatarLetter(name);
+    }
+    return el;
   }
 
   /* ═══════════ SCROLL ═══════════ */
@@ -1644,27 +1683,42 @@ html, body {
     nameModal.classList.remove('visible');
   }
 
-  function setUsername(name) {
+  function setUsername(name, pid) {
     name = (name || '').trim().slice(0, 20);
     if (!name) { toast('اسم نمی‌تونه خالی باشه', 'error'); return; }
     username = name;
+    profileId = pid || '';
     sessionStorage.setItem('messenger_username', username);
+    if (profileId) sessionStorage.setItem('messenger_profile', profileId);
+    else sessionStorage.removeItem('messenger_profile');
     closeNameModal();
     if (socket && socket.connected) {
-      socket.emit('join_chat', { username });
+      socket.emit('join_chat', { username, profile_id: profileId || null });
       toast(`خوش اومدی ${username}! 💜`, 'success');
     }
   }
 
   document.querySelectorAll('.name-btn').forEach((btn) => {
-    btn.addEventListener('click', () => setUsername(btn.getAttribute('data-name')));
+    btn.addEventListener('click', () =>
+      setUsername(btn.getAttribute('data-name'), btn.getAttribute('data-profile'))
+    );
   });
 
-  confirmName.addEventListener('click', () => setUsername(customName.value));
+  confirmName.addEventListener('click', () => setUsername(customName.value, ''));
   customName.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); setUsername(customName.value); }
+    if (e.key === 'Enter') { e.preventDefault(); setUsername(customName.value, ''); }
   });
   changeNameBtn.addEventListener('click', openNameModal);
+
+  /* دکمه پروفایل: اگر پروفایل داریم → /profile/<id> ، وگرنه /login */
+  profileBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (profileId) {
+      window.location.href = '/profile/' + profileId;
+    } else {
+      window.location.href = '/login';
+    }
+  });
 
   /* ═══════════ SOCKET.IO ═══════════ */
   function connectSocket() {
@@ -1674,7 +1728,7 @@ html, body {
       statusDot.classList.remove('offline');
       statusText.textContent = 'در حال اتصال به چت...';
       if (username) {
-        socket.emit('join_chat', { username });
+        socket.emit('join_chat', { username, profile_id: profileId || null });
         closeNameModal();
       } else {
         openNameModal();
@@ -1698,6 +1752,7 @@ html, body {
     });
 
     socket.on('connected', (data) => {
+      if (data.profiles) profiles = data.profiles;
       if (Array.isArray(data.history)) data.history.forEach(renderMessage);
       if (Array.isArray(data.online_users)) updateOnlineUsers(data.online_users);
     });
@@ -1781,9 +1836,13 @@ html, body {
     row.className = 'msg-row' + (mine ? ' mine' : '');
     if (msg.id) row.setAttribute('data-msg-id', msg.id);
 
-    const av = document.createElement('div');
-    av.className = 'msg-avatar ' + avatarClass(msg.username);
-    av.textContent = avatarLetter(msg.username);
+    // آواتار: اگر profile_id داره، از profiles (cache) بگیر
+    let avatarUrl = msg.avatar;
+    if (!avatarUrl && msg.profile_id && profiles[msg.profile_id]) {
+      avatarUrl = profiles[msg.profile_id].avatar;
+    }
+
+    const av = makeAvatarElement(msg.username, avatarUrl);
     row.appendChild(av);
 
     const wrap = document.createElement('div');
@@ -2067,7 +2126,7 @@ html, body {
       const duration = recSeconds;
       cleanupRecording();
 
-      if (!shouldSend) return; // لغو شد
+      if (!shouldSend) return;
       if (blob.size < 500) { toast('ضبط خیلی کوتاه بود', 'error'); return; }
       if (blob.size > 8 * 1024 * 1024) {
         toast('ویس خیلی بزرگ است (حداکثر ۸MB)', 'error');
@@ -2108,7 +2167,6 @@ html, body {
   recStopBtn.addEventListener('click', () => stopRecording(true));
   recCancelBtn.addEventListener('click', () => stopRecording(false));
 
-  // اگر کاربر صفحه را ترک کرد، میکروفون را آزاد کن
   window.addEventListener('beforeunload', () => {
     if (mediaRecorder && mediaRecorder.state === 'recording') {
       try { stopRecording(false); } catch {}
