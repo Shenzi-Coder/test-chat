@@ -21,6 +21,9 @@ from flask_socketio import SocketIO, emit, join_room
 MAX_CONNECTIONS = 4
 MAX_HISTORY = 200  # ۲۰۰ پیام آخر نگه داشته می‌شه
 
+# انواع پیام مجاز
+ALLOWED_MSG_TYPES = {"text", "image", "video", "audio"}
+
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "elshan-anil-messenger-2025")
 
@@ -170,11 +173,11 @@ def on_join_chat(data):
 
 
 # ─────────────────────────────────────────────
-#  SocketIO: Chat Message
+#  SocketIO: Chat Message (text / image / video / audio)
 # ─────────────────────────────────────────────
 @socketio.on("chat_message")
 def on_chat_message(data):
-    """دریافت پیام متنی یا فایل (base64)."""
+    """دریافت پیام متنی، عکس، ویدیو یا ویس (base64)."""
     if not data:
         return
 
@@ -188,27 +191,34 @@ def on_chat_message(data):
     content = data.get("content", "")
     filename = data.get("filename", "")
 
+    # فقط انواع مجاز
+    if msg_type not in ALLOWED_MSG_TYPES:
+        emit("chat_error", {"message": "نوع پیام پشتیبانی نمی‌شود."})
+        return
+
     if msg_type == "text":
         content = str(content)[:2000]
         if not content.strip():
             return
     else:
-        # حجم base64 تقریباً ۸MB
+        # حجم base64 تقریباً ۸MB (برای عکس، ویدیو و ویس یکسان)
         if len(content) > 12 * 1024 * 1024:
             emit("chat_error", {"message": "فایل خیلی بزرگ است (حداکثر ۸MB)."})
+            return
+        if not content:
             return
 
     msg_id = f"{int(time.time() * 1000)}-{request.sid[:6]}"
 
     payload = {
         "id": msg_id,
-        "type": msg_type,
+        "type": msg_type,          # text | image | video | audio
         "content": content,
         "filename": filename,
         "username": username,
         "sid": request.sid,
         "timestamp": data.get("timestamp") or now_iso(),
-        "read_by": [],  # برای تیک خوانده شدن
+        "read_by": [],             # برای تیک خوانده شدن
         "system": False,
     }
 
