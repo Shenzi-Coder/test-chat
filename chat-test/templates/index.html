@@ -308,7 +308,6 @@ html, body {
 .icon-btn:hover::before { opacity: 0.18; }
 .icon-btn:active { transform: scale(0.94); }
 
-/* ── Call button green state ── */
 .icon-btn.call-btn { color: var(--green); border-color: rgba(16, 185, 129, 0.35); }
 .icon-btn.call-btn:hover {
   color: #fff;
@@ -317,7 +316,16 @@ html, body {
 }
 .icon-btn.call-btn:hover::before { background: linear-gradient(135deg, #10b981, #22d3ee); opacity: 0.25; }
 
-.icon-btn.call-btn.ringing {
+.icon-btn.video-btn { color: var(--cyan); border-color: rgba(34, 211, 238, 0.35); }
+.icon-btn.video-btn:hover {
+  color: #fff;
+  border-color: var(--cyan);
+  box-shadow: 0 0 26px rgba(34, 211, 238, 0.55);
+}
+.icon-btn.video-btn:hover::before { background: linear-gradient(135deg, #22d3ee, #8b5cf6); opacity: 0.25; }
+
+.icon-btn.call-btn.ringing,
+.icon-btn.video-btn.ringing {
   animation: ringingPulse 1.2s ease-in-out infinite;
 }
 
@@ -356,7 +364,6 @@ html, body {
   font-size: 14px;
   line-height: 2;
   padding: 40px 20px;
-  animation: fadeIn 0.7s var(--expo);
 }
 
 .empty-orb {
@@ -377,11 +384,6 @@ html, body {
   50%      { transform: translateY(-14px) rotate(6deg); }
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(14px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
 .empty-state .title {
   font-size: 17px;
   font-weight: 700;
@@ -397,7 +399,6 @@ html, body {
   color: var(--text-mute);
   font-size: 11px;
   font-weight: 600;
-  animation: fadeIn 0.4s var(--ease);
 }
 
 .date-divider::before,
@@ -566,17 +567,7 @@ html, body {
   letter-spacing: -1px;
 }
 
-.msg-tick.read {
-  color: var(--cyan);
-  text-shadow: 0 0 10px rgba(34, 211, 238, 0.6);
-  animation: tickPop 0.4s var(--spring);
-}
-
-@keyframes tickPop {
-  0%   { transform: scale(0.5) rotate(-15deg); }
-  60%  { transform: scale(1.25) rotate(5deg); }
-  100% { transform: scale(1) rotate(0); }
-}
+.msg-tick.read { color: var(--cyan); text-shadow: 0 0 10px rgba(34, 211, 238, 0.6); }
 
 .msg-row.system { justify-content: center; margin: 10px 0; }
 .msg-row.system .msg-avatar { display: none; }
@@ -597,7 +588,7 @@ html, body {
 .msg-row.system .msg-meta { display: none; }
 
 /* ═══════════════════════════════════════════════════════════════════
-   TYPING INDICATOR
+   TYPING
    ═══════════════════════════════════════════════════════════════════ */
 .typing-bar {
   display: flex;
@@ -622,7 +613,6 @@ html, body {
   padding: 9px 14px;
   border-radius: 18px;
   border: 1px solid var(--border-soft);
-  box-shadow: var(--shadow-sm);
 }
 
 .typing-dot {
@@ -650,8 +640,8 @@ html, body {
   padding: 10px 14px calc(12px + env(safe-area-inset-bottom, 0px));
   background: linear-gradient(0deg, rgba(5, 6, 12, 0.98), rgba(10, 13, 23, 0.85));
   border-top: 1px solid var(--border-soft);
-  position: relative;
   flex-shrink: 0;
+  position: relative;
 }
 
 .input-bar::before {
@@ -770,15 +760,9 @@ html, body {
   border-radius: 16px;
   align-items: center;
   gap: 12px;
-  animation: slideUp 0.35s var(--spring);
 }
 
 .file-preview.visible { display: flex; }
-
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(12px) scale(0.96); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
 
 .file-preview-thumb {
   width: 56px;
@@ -828,7 +812,7 @@ html, body {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   RECORDING BAR (VOICE)
+   RECORDING BAR
    ═══════════════════════════════════════════════════════════════════ */
 .recording-bar {
   display: none;
@@ -839,7 +823,6 @@ html, body {
   background: var(--bg-2);
   border: 1px solid var(--red);
   border-radius: 16px;
-  animation: slideUp 0.35s var(--spring);
 }
 
 .recording-bar.visible { display: flex; }
@@ -928,7 +911,6 @@ html, body {
   background: var(--accent);
   color: #fff;
   box-shadow: var(--glow);
-  transform: translateY(-3px) scale(1.05);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -947,10 +929,7 @@ html, body {
   transition: opacity 0.45s var(--expo);
 }
 
-.modal-overlay.visible {
-  opacity: 1;
-  pointer-events: auto;
-}
+.modal-overlay.visible { opacity: 1; pointer-events: auto; }
 
 .modal {
   background: linear-gradient(180deg, rgba(24, 29, 46, 0.98), rgba(10, 13, 23, 0.98));
@@ -963,13 +942,9 @@ html, body {
   box-shadow: var(--shadow-lg), 0 0 80px rgba(139, 92, 246, 0.3);
   transform: scale(0.88) translateY(24px);
   transition: transform 0.5s var(--spring);
-  position: relative;
-  overflow: hidden;
 }
 
 .modal-overlay.visible .modal { transform: scale(1) translateY(0); }
-
-.modal > * { position: relative; z-index: 1; }
 
 .modal-icon {
   width: 84px;
@@ -1021,8 +996,6 @@ html, body {
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  position: relative;
-  overflow: hidden;
 }
 
 .name-btn:hover { transform: translateY(-4px); }
@@ -1088,7 +1061,7 @@ html, body {
 .confirm-btn:hover { transform: translateY(-2px) scale(1.02); }
 
 /* ═══════════════════════════════════════════════════════════════════
-   CALL MODAL (incoming / outgoing / active)
+   CALL MODAL (incoming / outgoing)
    ═══════════════════════════════════════════════════════════════════ */
 .call-overlay {
   position: fixed;
@@ -1124,7 +1097,6 @@ html, body {
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-/* چرخه‌ی نئون پس‌زمینه */
 .call-card::before {
   content: '';
   position: absolute;
@@ -1144,7 +1116,6 @@ html, body {
   border-radius: calc(var(--radius-xl) - 1px);
   background: linear-gradient(180deg, rgba(24, 29, 46, 0.97), rgba(10, 13, 23, 0.99));
   z-index: 0;
-  pointer-events: none;
 }
 
 .call-card > * { position: relative; z-index: 1; }
@@ -1175,7 +1146,6 @@ html, body {
 
 .call-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-/* موج‌های زنگ */
 .call-ring-wave {
   position: absolute;
   inset: 0;
@@ -1222,6 +1192,26 @@ html, body {
   100% { content: ''; }
 }
 
+.call-mode-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(34, 211, 238, 0.12);
+  border: 1px solid rgba(34, 211, 238, 0.3);
+  color: var(--cyan);
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+.call-mode-badge.audio {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: var(--green);
+}
+
 .call-actions {
   display: flex;
   gap: 16px;
@@ -1241,7 +1231,6 @@ html, body {
   transition: all 0.25s var(--spring);
   color: #fff;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
-  position: relative;
 }
 
 .call-action-btn:hover { transform: scale(1.08); }
@@ -1263,22 +1252,6 @@ html, body {
   box-shadow: 0 8px 28px rgba(239, 68, 68, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
-.call-action-btn.mute {
-  background: var(--bg-3);
-  border: 1px solid var(--border);
-  color: var(--text-dim);
-  font-size: 22px;
-  width: 58px;
-  height: 58px;
-}
-
-.call-action-btn.mute.active {
-  background: linear-gradient(135deg, #ef4444, #f43f5e);
-  color: #fff;
-  border-color: transparent;
-  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.45);
-}
-
 .call-action-btn small {
   display: block;
   font-size: 10px;
@@ -1286,83 +1259,139 @@ html, body {
   font-family: 'Vazirmatn', sans-serif;
 }
 
-/* لایه‌ی تماس فعال */
+/* ═══════════════════════════════════════════════════════════════════
+   ACTIVE CALL OVERLAY — Audio + Video
+   ═══════════════════════════════════════════════════════════════════ */
 .call-active-overlay {
   position: fixed;
   inset: 0;
-  background: radial-gradient(900px 500px at 50% 0%, rgba(139, 92, 246, 0.35), transparent 70%),
+  background: radial-gradient(900px 500px at 50% 0%, rgba(139, 92, 246, 0.3), transparent 70%),
               linear-gradient(180deg, #0a0d17, #05060c);
   z-index: 2400;
   display: none;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   justify-content: space-between;
-  padding: calc(32px + env(safe-area-inset-top, 0px)) 24px calc(32px + env(safe-area-inset-bottom, 0px));
+  padding: calc(20px + env(safe-area-inset-top, 0px)) 20px calc(20px + env(safe-area-inset-bottom, 0px));
   animation: fadeIn 0.4s var(--expo);
 }
 
 .call-active-overlay.visible { display: flex; }
 
+/* ── Header ── */
 .call-active-header {
-  text-align: center;
-  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 4px;
+  flex-shrink: 0;
+  z-index: 2;
+}
+
+.call-active-info {
+  text-align: right;
 }
 
 .call-active-title {
-  font-size: 15px;
+  font-size: 12.5px;
   color: var(--text-dim);
-  margin-bottom: 4px;
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.call-active-title .mode-icon {
+  font-size: 13px;
 }
 
 .call-active-name {
-  font-size: 26px;
+  font-size: 18px;
   font-weight: 800;
-  letter-spacing: -0.4px;
-  background: var(--grad-brand);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: gradientShift 5s ease infinite;
+  color: var(--text);
+  letter-spacing: -0.3px;
 }
 
 .call-active-timer {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-mute);
   font-variant-numeric: tabular-nums;
-  margin-top: 6px;
   letter-spacing: 1px;
+  margin-top: 2px;
 }
 
-.call-active-avatar-wrap {
+/* ── Video stage ── */
+.call-stage {
+  flex: 1;
   position: relative;
-  width: 220px;
-  height: 220px;
-  margin: 20px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 24px;
+  margin: 12px 0;
 }
 
-.call-active-avatar {
+/* ویدیوی طرف مقابل (بزرگ) */
+.remote-video-wrap {
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+
+.remote-video-wrap video {
   width: 100%;
   height: 100%;
+  object-fit: cover;
+  background: #000;
+}
+
+/* وقتی طرف مقابل دوربین نداره یا ویدیو خاموشه */
+.remote-video-wrap.video-off video { display: none; }
+
+.remote-placeholder {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: radial-gradient(circle at center, rgba(139, 92, 246, 0.2), transparent 70%),
+              linear-gradient(180deg, #0a0d17, #05060c);
+  border-radius: 24px;
+  z-index: 2;
+}
+
+.remote-video-wrap.video-off .remote-placeholder { display: flex; }
+
+.remote-placeholder-avatar {
+  width: 160px;
+  height: 160px;
   border-radius: 50%;
   overflow: hidden;
   background: var(--grad-me);
   display: grid;
   place-items: center;
-  font-size: 72px;
+  font-size: 64px;
   font-weight: 800;
   color: #fff;
   border: 4px solid rgba(139, 92, 246, 0.7);
-  box-shadow: 0 0 80px rgba(139, 92, 246, 0.55);
+  box-shadow: 0 0 60px rgba(139, 92, 246, 0.55);
   position: relative;
-  z-index: 2;
 }
 
-.call-active-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.remote-placeholder-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-/* موج‌های پالس حین صحبت */
-.call-active-avatar-wrap::before,
-.call-active-avatar-wrap::after {
+.remote-placeholder-avatar::before,
+.remote-placeholder-avatar::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -1371,23 +1400,108 @@ html, body {
   animation: activePulse 2.4s ease-out infinite;
 }
 
-.call-active-avatar-wrap::after { animation-delay: 1.2s; }
+.remote-placeholder-avatar::after { animation-delay: 1.2s; }
 
 @keyframes activePulse {
   0%   { transform: scale(1); opacity: 0.6; }
   100% { transform: scale(1.35); opacity: 0; }
 }
 
+.remote-placeholder-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.remote-placeholder-hint {
+  font-size: 12px;
+  color: var(--text-mute);
+}
+
+/* ویدیوی خودم (کوچیک، گوشه) */
+.local-video-wrap {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  width: 130px;
+  height: 174px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #000;
+  border: 2px solid rgba(139, 92, 246, 0.6);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  z-index: 3;
+  transition: transform 0.3s var(--spring), opacity 0.3s;
+  cursor: pointer;
+}
+
+.local-video-wrap:hover {
+  transform: scale(1.04);
+}
+
+.local-video-wrap video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* آینه برای خودم */
+  background: #000;
+}
+
+.local-video-wrap.video-off {
+  background: linear-gradient(135deg, #1a1025, #0a0d17);
+  display: grid;
+  place-items: center;
+}
+
+.local-video-wrap.video-off video { display: none; }
+
+.local-video-off-icon {
+  display: none;
+  font-size: 28px;
+  color: var(--text-mute);
+  text-align: center;
+}
+
+.local-video-wrap.video-off .local-video-off-icon { display: block; }
+
+.local-video-label {
+  position: absolute;
+  bottom: 4px;
+  right: 6px;
+  font-size: 9.5px;
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(0, 0, 0, 0.5);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+/* حالت تمام‌صفحه (بدون دوربین خودم) */
+.call-active-overlay.fullscreen-local .local-video-wrap {
+  width: 50%;
+  height: auto;
+  aspect-ratio: 3 / 4;
+  bottom: 50%;
+  left: 50%;
+  transform: translate(-50%, 50%);
+  max-height: 70vh;
+  max-width: 70vh;
+}
+
+/* ── Controls ── */
 .call-active-actions {
   display: flex;
-  gap: 20px;
+  gap: 14px;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  padding: 12px 0 4px;
+  z-index: 2;
 }
 
 .call-active-btn {
-  width: 64px;
-  height: 64px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   border: none;
   cursor: pointer;
@@ -1401,6 +1515,7 @@ html, body {
   color: var(--text);
   border: 1px solid var(--border);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  position: relative;
 }
 
 .call-active-btn:hover { transform: scale(1.08); background: var(--bg-4); }
@@ -1412,9 +1527,15 @@ html, body {
   border-color: transparent;
 }
 
+.call-active-btn.video-toggle.active {
+  background: linear-gradient(135deg, #ef4444, #f43f5e);
+  color: #fff;
+  border-color: transparent;
+}
+
 .call-active-btn.end {
-  width: 76px;
-  height: 76px;
+  width: 72px;
+  height: 72px;
   background: linear-gradient(135deg, #ef4444, #ec4899);
   color: #fff;
   border: none;
@@ -1425,6 +1546,17 @@ html, body {
   background: linear-gradient(135deg, #dc2626, #db2777);
   box-shadow: 0 12px 36px rgba(239, 68, 68, 0.8);
 }
+
+.call-active-btn small {
+  display: block;
+  font-size: 9px;
+  margin-top: 1px;
+  font-family: 'Vazirmatn', sans-serif;
+  font-weight: 500;
+}
+
+/* عناصر صوتی مخفی */
+#remote-audio { display: none; }
 
 /* ═══════════════════════════════════════════════════════════════════
    TOAST
@@ -1478,12 +1610,6 @@ html, body {
   max-height: 100%;
   border-radius: 14px;
   box-shadow: 0 40px 100px rgba(0, 0, 0, 0.85);
-  animation: zoomIn 0.35s var(--spring);
-}
-
-@keyframes zoomIn {
-  from { transform: scale(0.8); opacity: 0; }
-  to   { transform: scale(1); opacity: 1; }
 }
 
 .lightbox-close {
@@ -1536,12 +1662,33 @@ html, body {
   .call-avatar { font-size: 38px; }
   .call-name { font-size: 19px; }
   .call-action-btn { width: 60px; height: 60px; font-size: 22px; }
-  .call-action-btn.mute { width: 52px; height: 52px; font-size: 20px; }
-  .call-active-avatar-wrap { width: 170px; height: 170px; }
-  .call-active-avatar { font-size: 56px; }
-  .call-active-name { font-size: 22px; }
-  .call-active-btn { width: 58px; height: 58px; font-size: 22px; }
-  .call-active-btn.end { width: 68px; height: 68px; }
+
+  .call-active-overlay { padding: 12px 12px calc(12px + env(safe-area-inset-bottom, 0px)); }
+  .call-active-name { font-size: 16px; }
+  .call-active-timer { font-size: 12px; }
+
+  .local-video-wrap {
+    width: 100px;
+    height: 134px;
+    bottom: 12px;
+    left: 12px;
+    border-radius: 14px;
+  }
+
+  .remote-placeholder-avatar { width: 120px; height: 120px; font-size: 48px; }
+  .remote-placeholder-name { font-size: 16px; }
+
+  .call-active-btn { width: 54px; height: 54px; font-size: 22px; }
+  .call-active-btn.end { width: 64px; height: 64px; }
+  .call-active-actions { gap: 12px; }
+}
+
+@media (max-width: 420px) {
+  .local-video-wrap {
+    width: 88px;
+    height: 118px;
+  }
+  .call-active-avatar-wrap { width: 150px; height: 150px; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -1594,6 +1741,9 @@ html, body {
     <div class="header-actions">
       <button class="icon-btn call-btn" id="call-btn" title="تماس صوتی" aria-label="تماس صوتی">
         <span>📞</span>
+      </button>
+      <button class="icon-btn video-btn" id="video-btn" title="تماس تصویری" aria-label="تماس تصویری">
+        <span>🎥</span>
       </button>
       <a class="icon-btn" id="profile-btn" href="/login" title="پروفایل" aria-label="پروفایل">
         <span>💜</span>
@@ -1696,7 +1846,7 @@ html, body {
   </div>
 </div>
 
-<!-- ═══════════════ CALL MODAL (incoming / outgoing) ═══════════════ -->
+<!-- ═══════════════ CALL MODAL ═══════════════ -->
 <div class="call-overlay" id="call-modal">
   <div class="call-card">
     <div class="call-avatar-wrap">
@@ -1711,34 +1861,62 @@ html, body {
       <span class="pulse-dots">در انتظار پاسخ</span>
     </div>
 
+    <div id="call-mode-badge-wrap"></div>
+
     <div class="call-actions" id="call-actions">
-      <!-- دکمه‌ها با JS پر می‌شن -->
+      <!-- پر می‌شه با JS -->
     </div>
   </div>
 </div>
 
 <!-- ═══════════════ ACTIVE CALL OVERLAY ═══════════════ -->
 <div class="call-active-overlay" id="call-active">
+
+  <!-- Header -->
   <div class="call-active-header">
-    <div class="call-active-title">تماس صوتی</div>
-    <div class="call-active-name" id="active-name">—</div>
-    <div class="call-active-timer" id="active-timer">00:00</div>
+    <div class="call-active-info">
+      <div class="call-active-title">
+        <span class="mode-icon" id="active-mode-icon">📞</span>
+        <span id="active-mode-label">تماس صوتی</span>
+      </div>
+      <div class="call-active-name" id="active-name">—</div>
+      <div class="call-active-timer" id="active-timer">00:00</div>
+    </div>
   </div>
 
-  <div class="call-active-avatar-wrap">
-    <div class="call-active-avatar" id="active-avatar">🎙️</div>
+  <!-- Stage -->
+  <div class="call-stage">
+    <div class="remote-video-wrap video-off" id="remote-video-wrap">
+      <video id="remote-video" autoplay playsinline></video>
+      <div class="remote-placeholder" id="remote-placeholder">
+        <div class="remote-placeholder-avatar" id="remote-placeholder-avatar">?</div>
+        <div class="remote-placeholder-name" id="remote-placeholder-name">—</div>
+        <div class="remote-placeholder-hint" id="remote-placeholder-hint">در انتظار تصویر...</div>
+      </div>
+    </div>
+
+    <div class="local-video-wrap video-off" id="local-video-wrap" title="تصویر خودم">
+      <video id="local-video" autoplay playsinline muted></video>
+      <div class="local-video-off-icon">📷</div>
+      <div class="local-video-label">من</div>
+    </div>
   </div>
 
+  <!-- Controls -->
   <div class="call-active-actions">
     <button class="call-active-btn mute" id="active-mute-btn" title="بی‌صدا" aria-label="بی‌صدا">
       🎙️
     </button>
+
     <button class="call-active-btn end" id="active-end-btn" title="قطع تماس" aria-label="قطع تماس">
       📞
     </button>
+
+    <button class="call-active-btn video-toggle" id="active-video-btn" title="دوربین" aria-label="دوربین">
+      📷
+    </button>
   </div>
 
-  <!-- عناصر صوتی مخفی -->
   <audio id="remote-audio" autoplay playsinline></audio>
 </div>
 
@@ -1789,19 +1967,30 @@ html, body {
   const recCancelBtn  = $('rec-cancel');
 
   /* Call elements */
-  const callBtn       = $('call-btn');
-  const callModal     = $('call-modal');
-  const callAvatar    = $('call-avatar');
-  const callName      = $('call-name');
-  const callStatus    = $('call-status');
-  const callActions   = $('call-actions');
-  const callActive    = $('call-active');
-  const activeName    = $('active-name');
-  const activeTimer   = $('active-timer');
-  const activeAvatar  = $('active-avatar');
-  const activeMuteBtn = $('active-mute-btn');
-  const activeEndBtn  = $('active-end-btn');
-  const remoteAudio   = $('remote-audio');
+  const callBtn         = $('call-btn');
+  const videoBtn        = $('video-btn');
+  const callModal       = $('call-modal');
+  const callAvatar      = $('call-avatar');
+  const callName        = $('call-name');
+  const callStatus      = $('call-status');
+  const callActions     = $('call-actions');
+  const callModeBadge   = $('call-mode-badge-wrap');
+  const callActive      = $('call-active');
+  const activeName      = $('active-name');
+  const activeTimer     = $('active-timer');
+  const activeMuteBtn   = $('active-mute-btn');
+  const activeEndBtn    = $('active-end-btn');
+  const activeVideoBtn  = $('active-video-btn');
+  const activeModeIcon  = $('active-mode-icon');
+  const activeModeLabel = $('active-mode-label');
+  const remoteVideoWrap = $('remote-video-wrap');
+  const remoteVideo     = $('remote-video');
+  const remoteAudio     = $('remote-audio');
+  const remotePlaceholderAvatar = $('remote-placeholder-avatar');
+  const remotePlaceholderName   = $('remote-placeholder-name');
+  const remotePlaceholderHint   = $('remote-placeholder-hint');
+  const localVideoWrap  = $('local-video-wrap');
+  const localVideo      = $('local-video');
 
   let username    = sessionStorage.getItem('messenger_username') || '';
   let profileId   = sessionStorage.getItem('messenger_profile') || '';
@@ -1820,21 +2009,25 @@ html, body {
   let recSeconds    = 0;
   const MAX_REC_SECONDS = 60;
 
-  /* Profiles cache */
+  /* Profiles */
   let profiles = {};
   let onlineUsers = [];
 
-  /* ── WebRTC state ── */
-  let pc                = null;       // RTCPeerConnection
-  let localStream       = null;       // میکروفن خودم
-  let remoteSid         = null;       // sid طرف مقابل
+  /* WebRTC */
+  let pc                = null;
+  let localStream       = null;       // صدای من (و دوربین اگر دارم)
+  let hasLocalVideo     = false;      // آیا دوربین دارم؟
+  let videoSender       = null;       // RTCRtpSender ویدیو
+  let remoteSid         = null;
   let callState         = 'idle';     // idle | outgoing | incoming | active
-  let incomingFrom      = null;       // { from_sid, from_name }
+  let callMode          = 'audio';    // audio | video — نوع تماس درخواستی
+  let incomingFrom      = null;       // { from_sid, from_name, mode }
   let callTimer         = null;
   let callSeconds       = 0;
   let iceServers        = [{ urls: 'stun:stun.l.google.com:19302' }];
-  let pendingCandidates = [];         // ICE candidates قبل از remoteDescription
+  let pendingCandidates = [];
   let isMuted           = false;
+  let isCamOff          = false;
 
   /* ═══════════ UTILS ═══════════ */
   function escapeHtml(s) {
@@ -1918,6 +2111,13 @@ html, body {
       el.textContent = avatarLetter(name);
     }
     return el;
+  }
+
+  function getProfileAvatar(name) {
+    for (const uid in profiles) {
+      if (profiles[uid].name === name) return profiles[uid].avatar;
+    }
+    return null;
   }
 
   /* ═══════════ SCROLL ═══════════ */
@@ -2005,7 +2205,6 @@ html, body {
     socket.on('disconnect', () => {
       statusDot.classList.add('offline');
       statusText.textContent = 'قطع شد — در حال اتصال مجدد...';
-      // اگر تماس فعال بود، قطع کن
       if (callState === 'active' || callState === 'outgoing') {
         cleanupCall(true);
       }
@@ -2069,7 +2268,6 @@ html, body {
     /* ── Call events ── */
     socket.on('incoming_call', (data) => {
       if (callState !== 'idle') {
-        // اگر مشغولم، رد کن
         socket.emit('call_reject', { to_sid: data.from_sid });
         return;
       }
@@ -2077,16 +2275,21 @@ html, body {
     });
 
     socket.on('call_accepted', (data) => {
-      // تماس‌گیرنده: طرف قبول کرد
       if (callState !== 'outgoing') return;
       remoteSid = data.by_sid;
       callState = 'active';
+
+      // ذخیره‌ی حالت واقعی: caller_mode و callee_mode
+      const callerMode = data.caller_mode || 'audio';
+      const calleeMode = data.callee_mode || 'audio';
+
       hideCallModal();
-      showActiveCall(data.by_name || '—', data.by_sid);
+      showActiveCall(data.by_name || '—', callMode);
       startCallTimer();
 
-      // ساخت offer
-      createOffer().catch((err) => {
+      // ساخت offer با توجه به اینکه من دوربین دارم یا نه
+      // (callMode = video → تلاش برای گرفتن دوربین)
+      createOffer(callMode === 'video').catch((err) => {
         console.error('createOffer', err);
         toast('خطا در شروع تماس', 'error');
         cleanupCall(true);
@@ -2112,11 +2315,7 @@ html, body {
     });
 
     socket.on('webrtc_offer', async (data) => {
-      // کالی: offer دریافت کرد
-      if (!pc || callState !== 'active') {
-        // اگر pc نیست، احتمالاً قبول نکرده
-        return;
-      }
+      if (!pc || callState !== 'active') return;
       try {
         await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
         await flushPendingCandidates();
@@ -2132,7 +2331,6 @@ html, body {
     });
 
     socket.on('webrtc_answer', async (data) => {
-      // کالر: answer دریافت کرد
       if (!pc) return;
       try {
         await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
@@ -2576,12 +2774,12 @@ html, body {
   sendBtn.addEventListener('click', sendMessage);
 
   /* ═══════════════════════════════════════════════════════════════════
-     WEBRTC — VOICE CALL
+     WEBRTC — AUDIO + VIDEO CALL
      ═══════════════════════════════════════════════════════════════════ */
 
-  function buildCallActions(mode) {
+  function buildCallActions(mode, direction) {
     callActions.innerHTML = '';
-    if (mode === 'incoming') {
+    if (direction === 'incoming') {
       const accept = document.createElement('button');
       accept.className = 'call-action-btn accept';
       accept.innerHTML = '📞<small>قبول</small>';
@@ -2595,13 +2793,11 @@ html, body {
       callActions.appendChild(accept);
       callActions.appendChild(reject);
     } else {
-      // outgoing → فقط دکمه‌ی قطع
       const cancel = document.createElement('button');
       cancel.className = 'call-action-btn reject';
       cancel.innerHTML = '✕<small>لغو</small>';
       cancel.addEventListener('click', () => {
-        if (remoteSid) socket.emit('call_end');
-        else socket.emit('call_end');
+        socket.emit('call_end');
         cleanupCall(false);
         toast('تماس لغو شد');
       });
@@ -2609,25 +2805,31 @@ html, body {
     }
   }
 
-  function showOutgoingCall() {
-    callModal.classList.add('visible');
-    callBtn.classList.add('ringing');
+  function renderModeBadge(mode) {
+    callModeBadge.innerHTML = '';
+    const b = document.createElement('div');
+    b.className = 'call-mode-badge ' + (mode === 'audio' ? 'audio' : '');
+    b.textContent = mode === 'video' ? '🎥 تماس تصویری' : '📞 تماس صوتی';
+    callModeBadge.appendChild(b);
+  }
 
-    // آواتار و اسم: اولین نفر آنلاین غیر از خودم
+  function showOutgoingCall(mode) {
+    callModal.classList.add('visible');
+    callMode = mode;
+    callBtn.classList.toggle('ringing', mode === 'audio');
+    videoBtn.classList.toggle('ringing', mode === 'video');
+
     const others = onlineUsers.filter((n) => n !== username);
     if (others.length === 0) {
       toast('کسی آنلاین نیست', 'error');
       callBtn.classList.remove('ringing');
+      videoBtn.classList.remove('ringing');
       callModal.classList.remove('visible');
       return;
     }
 
-    let otherName = others[0];
-    let otherAvatar = null;
-    // تلاش برای پیدا کردن آواتار
-    for (const [uid, p] of Object.entries(profiles)) {
-      if (p.name === otherName) { otherAvatar = p.avatar; break; }
-    }
+    const otherName = others[0];
+    const otherAvatar = getProfileAvatar(otherName);
 
     callName.textContent = otherName;
     callStatus.innerHTML = '<span class="pulse-dots">در حال زنگ زدن</span>';
@@ -2642,22 +2844,22 @@ html, body {
       callAvatar.textContent = avatarLetter(otherName);
     }
 
-    buildCallActions('outgoing');
-    socket.emit('call_request');
+    renderModeBadge(mode);
+    buildCallActions(mode, 'outgoing');
+    socket.emit('call_request', { mode });
     callState = 'outgoing';
   }
 
   function showIncomingCall(data) {
     callState = 'incoming';
     incomingFrom = data;
+    callMode = data.mode || 'audio';
 
     callModal.classList.add('visible');
-    callBtn.classList.add('ringing');
+    callBtn.classList.toggle('ringing', callMode === 'audio');
+    videoBtn.classList.toggle('ringing', callMode === 'video');
 
-    let avatar = null;
-    for (const [uid, p] of Object.entries(profiles)) {
-      if (p.name === data.from_name) { avatar = p.avatar; break; }
-    }
+    const avatar = getProfileAvatar(data.from_name);
 
     callName.textContent = data.from_name || 'ناشناس';
     callStatus.innerHTML = '<span class="pulse-dots">در حال تماس</span>';
@@ -2672,7 +2874,34 @@ html, body {
       callAvatar.textContent = avatarLetter(data.from_name);
     }
 
-    buildCallActions('incoming');
+    renderModeBadge(callMode);
+    buildCallActions(callMode, 'incoming');
+  }
+
+  /* ── گرفتن میکروفن (و دوربین اگر بخوایم و ممکن باشه) ── */
+  async function getLocalMedia(wantVideo) {
+    // مرحله ۱: تلاش برای صدا + ویدیو (اگر بخوایم)
+    if (wantVideo) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+          video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
+        });
+        hasLocalVideo = stream.getVideoTracks().length > 0;
+        return stream;
+      } catch (err) {
+        console.warn('getUserMedia با ویدیو ناموفق:', err);
+        // ادامه به fallback
+      }
+    }
+
+    // مرحله ۲: فقط صدا
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+      video: false,
+    });
+    hasLocalVideo = false;
+    return stream;
   }
 
   async function acceptIncomingCall() {
@@ -2680,12 +2909,11 @@ html, body {
     remoteSid = incomingFrom.from_sid;
     const fromName = incomingFrom.from_name;
 
-    // گرفتن میکروفن
+    // آیا کاربر دوربین داره؟ اگر تماس تصویریه، تلاش می‌کنیم؛ وگرنه فقط صدا
+    const wantVideo = callMode === 'video';
+
     try {
-      localStream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
-        video: false,
-      });
+      localStream = await getLocalMedia(wantVideo);
     } catch (err) {
       toast('دسترسی به میکروفن داده نشد', 'error');
       socket.emit('call_reject', { to_sid: remoteSid });
@@ -2693,17 +2921,36 @@ html, body {
       return;
     }
 
-    createPeerConnection();
+    // به سرور بگو با چه حالتی قبول می‌کنم
+    const myMode = hasLocalVideo ? 'video' : 'audio';
+    socket.emit('call_accept', { to_sid: remoteSid, mode: myMode });
 
-    // اضافه کردن track میکروفن
+    createPeerConnection();
     localStream.getTracks().forEach((track) => pc.addTrack(track, localStream));
 
     callState = 'active';
     hideCallModal();
-    showActiveCall(fromName, remoteSid);
+    showActiveCall(fromName, myMode);
     startCallTimer();
 
-    socket.emit('call_accept', { to_sid: remoteSid });
+    // نمایش ویدیوی خودم
+    if (hasLocalVideo) {
+      localVideo.srcObject = localStream;
+      localVideoWrap.classList.remove('video-off');
+      activeVideoBtn.classList.remove('active');
+    } else {
+      localVideoWrap.classList.add('video-off');
+    }
+
+    // اگر از قبل video track دارم، sender رو ذخیره کن
+    if (hasLocalVideo) {
+      const vt = localStream.getVideoTracks()[0];
+      if (vt) {
+        // پیدا کردن sender
+        const senders = pc.getSenders();
+        videoSender = senders.find(s => s.track && s.track.kind === 'video') || null;
+      }
+    }
   }
 
   function rejectIncomingCall() {
@@ -2717,31 +2964,49 @@ html, body {
   function hideCallModal() {
     callModal.classList.remove('visible');
     callBtn.classList.remove('ringing');
+    videoBtn.classList.remove('ringing');
   }
 
-  function showActiveCall(name, sid) {
+  function showActiveCall(name, mode) {
     callActive.classList.add('visible');
+
+    activeModeIcon.textContent = mode === 'video' ? '🎥' : '📞';
+    activeModeLabel.textContent = mode === 'video' ? 'تماس تصویری' : 'تماس صوتی';
     activeName.textContent = name || '—';
 
-    // آواتار
-    let avatar = null;
-    for (const [uid, p] of Object.entries(profiles)) {
-      if (p.name === name) { avatar = p.avatar; break; }
-    }
-    activeAvatar.innerHTML = '';
+    // پلیس‌هولدر طرف مقابل
+    const avatar = getProfileAvatar(name);
+    remotePlaceholderAvatar.innerHTML = '';
     if (avatar) {
       const img = document.createElement('img');
       img.src = avatar;
       img.alt = name;
-      activeAvatar.appendChild(img);
+      remotePlaceholderAvatar.appendChild(img);
     } else {
-      activeAvatar.textContent = avatarLetter(name);
+      remotePlaceholderAvatar.textContent = avatarLetter(name);
+    }
+    remotePlaceholderName.textContent = name || '—';
+    remotePlaceholderHint.textContent = mode === 'video' ? 'در انتظار تصویر...' : 'تماس صوتی';
+
+    // وضعیت اولیه: ویدیو خاموش
+    remoteVideoWrap.classList.add('video-off');
+
+    // حالت دوربین خودم
+    if (hasLocalVideo) {
+      localVideoWrap.classList.remove('video-off');
+      activeVideoBtn.classList.remove('active');
+    } else {
+      localVideoWrap.classList.add('video-off');
+      // دکمه‌ی دوربین غیرفعال
+      activeVideoBtn.disabled = true;
+      activeVideoBtn.style.opacity = '0.4';
     }
 
-    // ریست mic state
     isMuted = false;
     activeMuteBtn.classList.remove('active');
     activeMuteBtn.textContent = '🎙️';
+
+    isCamOff = !hasLocalVideo;
   }
 
   function startCallTimer() {
@@ -2772,14 +3037,18 @@ html, body {
     };
 
     pc.ontrack = (e) => {
-      // صدای طرف مقابل
       const [stream] = e.streams;
-      if (stream) {
+      if (!stream) return;
+      if (e.track.kind === 'audio') {
         remoteAudio.srcObject = stream;
         remoteAudio.play().catch(() => {
-          // autoplay ممکنه block بشه؛ تلاش دوباره با user gesture
           toast('برای شنیدن صدا، دوباره روی تماس کلیک کن', 'error');
         });
+      } else if (e.track.kind === 'video') {
+        remoteVideo.srcObject = stream;
+        remoteVideo.play().catch(() => {});
+        remoteVideoWrap.classList.remove('video-off');
+        // وقتی track ویدیو از طرف مقابل رسید، پلیس‌هولدر مخفی می‌شه
       }
     };
 
@@ -2793,16 +3062,29 @@ html, body {
     return pc;
   }
 
-  async function createOffer() {
+  async function createOffer(wantVideo) {
     if (!localStream) {
-      localStream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
-        video: false,
-      });
+      localStream = await getLocalMedia(wantVideo);
     }
 
     createPeerConnection();
     localStream.getTracks().forEach((track) => pc.addTrack(track, localStream));
+
+    // ذخیره‌ی sender ویدیو (اگر دارم)
+    if (hasLocalVideo) {
+      const senders = pc.getSenders();
+      videoSender = senders.find(s => s.track && s.track.kind === 'video') || null;
+
+      // نمایش ویدیوی خودم
+      localVideo.srcObject = localStream;
+      localVideoWrap.classList.remove('video-off');
+    } else {
+      localVideoWrap.classList.add('video-off');
+      if (activeVideoBtn) {
+        activeVideoBtn.disabled = true;
+        activeVideoBtn.style.opacity = '0.4';
+      }
+    }
 
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
@@ -2826,29 +3108,29 @@ html, body {
       try { socket.emit('call_end'); } catch {}
     }
 
-    // بستن peer
     if (pc) {
       try { pc.close(); } catch {}
       pc = null;
     }
 
-    // توقف میکروفن
     if (localStream) {
       localStream.getTracks().forEach(t => t.stop());
       localStream = null;
     }
 
-    // قطع پخش صدای طرف مقابل
-    if (remoteAudio) {
-      remoteAudio.srcObject = null;
-    }
+    if (remoteVideo) remoteVideo.srcObject = null;
+    if (remoteAudio) remoteAudio.srcObject = null;
+    if (localVideo) localVideo.srcObject = null;
 
-    // reset
     remoteSid = null;
     incomingFrom = null;
     pendingCandidates = [];
     isMuted = false;
+    isCamOff = false;
+    hasLocalVideo = false;
+    videoSender = null;
     callState = 'idle';
+    callMode = 'audio';
 
     clearInterval(callTimer);
     callTimer = null;
@@ -2856,23 +3138,26 @@ html, body {
     hideCallModal();
     callActive.classList.remove('visible');
     activeTimer.textContent = '00:00';
+
+    remoteVideoWrap.classList.add('video-off');
+    localVideoWrap.classList.add('video-off');
+    activeVideoBtn.disabled = false;
+    activeVideoBtn.style.opacity = '';
   }
 
-  /* ── Call button (start outgoing) ── */
+  /* ── دکمه‌های هدر ── */
   callBtn.addEventListener('click', () => {
-    if (callState !== 'idle') {
-      toast('شما در حال حاضر در تماس هستید');
-      return;
-    }
-    if (!socket || !socket.connected) {
-      toast('اتصال برقرار نیست', 'error');
-      return;
-    }
-    if (!window.isSecureContext) {
-      toast('تماس صوتی فقط روی HTTPS یا localhost کار می‌کند', 'error');
-      return;
-    }
-    showOutgoingCall();
+    if (callState !== 'idle') { toast('شما در حال حاضر در تماس هستید'); return; }
+    if (!socket || !socket.connected) { toast('اتصال برقرار نیست', 'error'); return; }
+    if (!window.isSecureContext) { toast('تماس فقط روی HTTPS یا localhost کار می‌کند', 'error'); return; }
+    showOutgoingCall('audio');
+  });
+
+  videoBtn.addEventListener('click', () => {
+    if (callState !== 'idle') { toast('شما در حال حاضر در تماس هستید'); return; }
+    if (!socket || !socket.connected) { toast('اتصال برقرار نیست', 'error'); return; }
+    if (!window.isSecureContext) { toast('تماس فقط روی HTTPS یا localhost کار می‌کند', 'error'); return; }
+    showOutgoingCall('video');
   });
 
   /* ── Mute toggle ── */
@@ -2882,6 +3167,57 @@ html, body {
     localStream.getAudioTracks().forEach((t) => { t.enabled = !isMuted; });
     activeMuteBtn.classList.toggle('active', isMuted);
     activeMuteBtn.textContent = isMuted ? '🔇' : '🎙️';
+  });
+
+  /* ── Camera toggle ── */
+  activeVideoBtn.addEventListener('click', async () => {
+    if (!pc || !remoteSid) return;
+
+    if (hasLocalVideo) {
+      // خاموش کردن دوربین
+      isCamOff = true;
+      localStream.getVideoTracks().forEach(t => { t.enabled = false; });
+      localVideoWrap.classList.add('video-off');
+      activeVideoBtn.classList.add('active');
+      // اگه sender داری، track رو غیرفعال کن (بهتره track رو null نکنیم)
+      if (videoSender) {
+        try { await videoSender.replaceTrack(null); } catch {}
+      }
+    } else {
+      // تلاش برای روشن کردن دوربین
+      try {
+        const camStream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' }
+        });
+        const newTrack = camStream.getVideoTracks()[0];
+        if (!newTrack) throw new Error('no video track');
+
+        localStream.addTrack(newTrack);
+        hasLocalVideo = true;
+        isCamOff = false;
+
+        localVideo.srcObject = localStream;
+        localVideoWrap.classList.remove('video-off');
+        activeVideoBtn.classList.remove('active');
+
+        if (videoSender) {
+          await videoSender.replaceTrack(newTrack);
+        } else {
+          const sender = pc.addTrack(newTrack, localStream);
+          videoSender = sender;
+          // نیاز به renegotiation
+          const offer = await pc.createOffer();
+          await pc.setLocalDescription(offer);
+          socket.emit('webrtc_offer', {
+            to_sid: remoteSid,
+            offer: pc.localDescription,
+          });
+        }
+      } catch (err) {
+        console.warn('روشن کردن دوربین ناموفق:', err);
+        toast('دوربین در دسترس نیست', 'error');
+      }
+    }
   });
 
   /* ── End call ── */
