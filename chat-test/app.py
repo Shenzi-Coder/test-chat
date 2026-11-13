@@ -1,6 +1,6 @@
 # ─────────────────────────────────────────────
 #  Elshan & Anil — Personal Messenger
-#  app.py — Flask + Flask-SocketIO + WebRTC signaling
+#  app.py — Flask + Flask-SocketIO + WebRTC (Audio + Video)
 #  ⚠️ eventlet.monkey_patch() باید قبل از هر import دیگری باشد
 # ─────────────────────────────────────────────
 
@@ -19,9 +19,8 @@ from flask_socketio import SocketIO, emit, join_room
 #  تنظیمات
 # ─────────────────────────────────────────────
 MAX_CONNECTIONS = 4
-MAX_HISTORY = 200  # ۲۰۰ پیام آخر نگه داشته می‌شه
+MAX_HISTORY = 200
 
-# انواع پیام مجاز
 ALLOWED_MSG_TYPES = {"text", "image", "video", "audio"}
 
 app = Flask(__name__)
@@ -35,7 +34,7 @@ socketio = SocketIO(
 )
 
 # ─────────────────────────────────────────────
-#  Profiles (حساب‌های کاربری)
+#  Profiles
 # ─────────────────────────────────────────────
 PROFILES = {
     "anil": {
@@ -56,31 +55,30 @@ PROFILES = {
     },
 }
 
-
 # ─────────────────────────────────────────────
-#  State (in-memory)
+#  State
 # ─────────────────────────────────────────────
 lock = threading.Lock()
-active_connections = 0                # تعداد اتصال‌های همزمان
+active_connections = 0
 online_users = {}                     # sid -> {username, joined_at, profile_id}
-chat_history = deque(maxlen=MAX_HISTORY)  # پیام‌های آخر
-typing_users = {}                     # sid -> timestamp آخرین typing
+chat_history = deque(maxlen=MAX_HISTORY)
+typing_users = {}
 
-# Call State (WebRTC signaling)
+# Call state
 # sid -> { "peer": sid | None, "state": "idle"|"calling"|"active" }
 calls = {}
+# sid -> "audio" | "video"
+call_modes = {}
 
 
 # ─────────────────────────────────────────────
 #  Helpers
 # ─────────────────────────────────────────────
 def now_iso():
-    """زمان فعلی به صورت ISO (برای نمایش در کلاینت)."""
     return time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime())
 
 
 def get_online_usernames():
-    """لیست اسم‌های آنلاین (بدون تکرار)."""
     seen = []
     for info in online_users.values():
         u = info.get("username")
@@ -90,7 +88,6 @@ def get_online_usernames():
 
 
 def get_online_profile_ids():
-    """لیست id پروفایل‌های آنلاین."""
     seen = []
     for info in online_users.values():
         pid = info.get("profile_id")
@@ -100,7 +97,6 @@ def get_online_profile_ids():
 
 
 def get_busy_names():
-    """اسم کسانی که در حال تماس فعال هستن."""
     result = []
     for s in calls:
         if s in online_users and calls[s]["state"] == "active":
@@ -111,7 +107,6 @@ def get_busy_names():
 
 
 def system_message(text, msg_type="system"):
-    """ساخت پیام سیستمی."""
     return {
         "type": msg_type,
         "text": text,
@@ -121,13 +116,18 @@ def system_message(text, msg_type="system"):
 
 
 def broadcast_online():
-    """ارسال وضعیت آنلاین به همه."""
     socketio.emit("online_update", {
         "online": active_connections,
         "max": MAX_CONNECTIONS,
         "users": get_online_usernames(),
         "profiles": get_online_profile_ids(),
         "busy": get_busy_names(),
+    }, to="chat")
+
+
+def broadcast_busy():
+    socketio.emit("call_busy_update", {
+        "busy": get_busy_names()
     }, to="chat")
 
 
@@ -139,21 +139,27 @@ def _set_call_state(sid, peer=None, state="idle"):
     calls[sid] = {"peer": peer, "state": state}
 
 
+def _set_call_mode(sid, mode="audio"):
+    if sid:
+        call_modes[sid] = mode if mode in ("audio", "video") else "audio"
+
+
+def _get_call_mode(sid):
+    return call_modes.get(sid, "audio")
+
+
 def _clear_call(sid):
+    """پاک‌سازی کامل تماس (peer + mode)."""
     if not sid:
         return
     info = calls.pop(sid, None)
+    call_modes.pop(sid, None)
     if not info:
         return
     peer = info.get("peer")
     if peer and peer in calls:
         calls.pop(peer, None)
-
-
-def broadcast_busy():
-    socketio.emit("call_busy_update", {
-        "busy": get_busy_names()
-    }, to="chat")
+        call_modes.pop(peer, None)
 
 
 # ─────────────────────────────────────────────
@@ -177,17 +183,15 @@ def status():
 
 
 # ─────────────────────────────────────────────
-#  Routes — Accounts / Profiles
+#  Routes — Accounts
 # ─────────────────────────────────────────────
 @app.route("/login")
 def login_page():
-    """صفحه‌ی انتخاب حساب."""
     return render_template("login.html", profiles=PROFILES)
 
 
 @app.route("/profile/<user_id>")
 def profile_page(user_id):
-    """صفحه‌ی پروفایل هر کاربر."""
     profile = PROFILES.get(user_id)
     if not profile:
         return "پروفایل پیدا نشد", 404
@@ -196,7 +200,6 @@ def profile_page(user_id):
 
 @app.route("/api/profiles")
 def api_profiles():
-    """لیست پروفایل‌ها + وضعیت آنلاین برای جاوااسکریپت."""
     with lock:
         online_names = get_online_usernames()
         online_ids = get_online_profile_ids()
@@ -219,7 +222,6 @@ def api_profiles():
 # ─────────────────────────────────────────────
 @app.route("/api/ice")
 def api_ice():
-    """ICE servers برای WebRTC."""
     servers = [
         {"urls": "stun:stun.l.google.com:19302"},
         {"urls": "stun:stun1.l.google.com:19302"},
@@ -264,6 +266,7 @@ def on_connect():
         "online_users": get_online_usernames(),
         "online_profiles": get_online_profile_ids(),
         "busy": get_busy_names(),
+        "call_modes": ["audio", "video"],
         "profiles": {uid: {"name": p["name"], "avatar": p["avatar"], "emoji": p["emoji"]}
                      for uid, p in PROFILES.items()},
     })
@@ -287,8 +290,8 @@ def on_disconnect():
     if call_info and call_info.get("peer"):
         peer = call_info["peer"]
         socketio.emit("call_ended", {"by_sid": sid}, to=peer)
-        calls.pop(peer, None)
-    calls.pop(sid, None)
+        _clear_call(peer)
+    _clear_call(sid)
 
     if username and username != "مهمان":
         msg = system_message(f"{username} از چت خارج شد")
@@ -305,7 +308,6 @@ def on_disconnect():
 # ─────────────────────────────────────────────
 @socketio.on("join_chat")
 def on_join_chat(data):
-    """کاربر با اسمش (و اختیاراً profile_id) وارد چت می‌شه."""
     data = data or {}
     username = (data.get("username", "") or "").strip()[:20] or "مهمان"
     profile_id = data.get("profile_id")
@@ -341,7 +343,6 @@ def on_join_chat(data):
 # ─────────────────────────────────────────────
 @socketio.on("chat_message")
 def on_chat_message(data):
-    """دریافت پیام متنی، عکس، ویدیو یا ویس (base64)."""
     if not data:
         return
 
@@ -403,7 +404,7 @@ def on_chat_message(data):
 
 
 # ─────────────────────────────────────────────
-#  SocketIO: Typing Indicator
+#  SocketIO: Typing
 # ─────────────────────────────────────────────
 @socketio.on("typing")
 def on_typing(data):
@@ -447,11 +448,16 @@ def on_mark_read(data):
 
 
 # ─────────────────────────────────────────────
-#  SocketIO: Voice Call Signaling (WebRTC)
+#  SocketIO: Call Signaling (Audio + Video)
 # ─────────────────────────────────────────────
 @socketio.on("call_request")
 def on_call_request(data=None):
-    """درخواست تماس صوتی؛ به بقیه‌ی اعضای چت خبر بده."""
+    """درخواست تماس (audio یا video)."""
+    data = data or {}
+    mode = data.get("mode", "audio")
+    if mode not in ("audio", "video"):
+        mode = "audio"
+
     with lock:
         info = online_users.get(request.sid)
         if not info:
@@ -464,30 +470,53 @@ def on_call_request(data=None):
         return
 
     _set_call_state(request.sid, peer=None, state="calling")
+    _set_call_mode(request.sid, mode)
 
     socketio.emit("incoming_call", {
         "from_sid": request.sid,
         "from_name": caller_name,
+        "mode": mode,
     }, to="chat", skip_sid=request.sid)
 
 
 @socketio.on("call_accept")
 def on_call_accept(data):
-    """کاربر تماس رو قبول کرد."""
-    caller_sid = (data or {}).get("to_sid")
+    """
+    قبول تماس.
+    callee_mode: "audio" یا "video" — کلاینت می‌گه دوربین داره یا نه.
+    هر طرف می‌تونه independent باشه:
+      - اگر caller دوربین داشت → ویدیو track می‌فرسته
+      - اگر callee دوربین داشت → ویدیو track می‌فرسته
+      - هر کدوم ویدیو نفرستاد، طرف مقابل فقط صداش رو می‌شنوه
+    """
+    data = data or {}
+    caller_sid = data.get("to_sid")
+    callee_mode = data.get("mode", "audio")
+    if callee_mode not in ("audio", "video"):
+        callee_mode = "audio"
+
     if not caller_sid or caller_sid not in online_users:
         emit("call_error", {"message": "تماس‌گیرنده در دسترس نیست."})
         return
+
+    caller_mode = _get_call_mode(caller_sid)
 
     with lock:
         callee_name = online_users.get(request.sid, {}).get("username", "?")
 
     _set_call_state(request.sid, peer=caller_sid, state="active")
     _set_call_state(caller_sid, peer=request.sid, state="active")
+    _set_call_mode(request.sid, callee_mode)
+    _set_call_mode(caller_sid, caller_mode)
 
+    # به تماس‌گیرنده بگو قبول شد + حالت هر طرف
     socketio.emit("call_accepted", {
         "by_sid": request.sid,
         "by_name": callee_name,
+        "caller_mode": caller_mode,   # "audio" | "video"
+        "callee_mode": callee_mode,   # "audio" | "video"
+        # final_mode فقط برای نمایش UI (اگر یکی ویدیو خواست، final_mode=video)
+        "mode": "video" if (caller_mode == "video" or callee_mode == "video") else "audio",
     }, to=caller_sid)
 
     broadcast_busy()
@@ -495,12 +524,9 @@ def on_call_accept(data):
 
 @socketio.on("call_reject")
 def on_call_reject(data):
-    """کاربر تماس رو رد کرد."""
     caller_sid = (data or {}).get("to_sid")
     if caller_sid:
-        socketio.emit("call_rejected", {
-            "by_sid": request.sid,
-        }, to=caller_sid)
+        socketio.emit("call_rejected", {"by_sid": request.sid}, to=caller_sid)
     _clear_call(request.sid)
     if caller_sid:
         _clear_call(caller_sid)
@@ -509,7 +535,6 @@ def on_call_reject(data):
 
 @socketio.on("call_end")
 def on_call_end(data=None):
-    """یکی از طرفین تماس رو قطع کرد."""
     info = _call_state(request.sid)
     peer = info.get("peer")
 
