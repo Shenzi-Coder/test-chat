@@ -1,6 +1,6 @@
 # ─────────────────────────────────────────────
 #  Elshan & Anil — Personal Messenger
-#  app.py — Flask + Flask-SocketIO
+#  app.py — Flask + Flask-SocketIO + WebRTC signaling
 #  ⚠️ eventlet.monkey_patch() باید قبل از هر import دیگری باشد
 # ─────────────────────────────────────────────
 
@@ -66,6 +66,10 @@ online_users = {}                     # sid -> {username, joined_at, profile_id}
 chat_history = deque(maxlen=MAX_HISTORY)  # پیام‌های آخر
 typing_users = {}                     # sid -> timestamp آخرین typing
 
+# Call State (WebRTC signaling)
+# sid -> { "peer": sid | None, "state": "idle"|"calling"|"active" }
+calls = {}
+
 
 # ─────────────────────────────────────────────
 #  Helpers
@@ -95,6 +99,17 @@ def get_online_profile_ids():
     return seen
 
 
+def get_busy_names():
+    """اسم کسانی که در حال تماس فعال هستن."""
+    result = []
+    for s in calls:
+        if s in online_users and calls[s]["state"] == "active":
+            name = online_users[s]["username"]
+            if name not in result:
+                result.append(name)
+    return result
+
+
 def system_message(text, msg_type="system"):
     """ساخت پیام سیستمی."""
     return {
@@ -112,6 +127,32 @@ def broadcast_online():
         "max": MAX_CONNECTIONS,
         "users": get_online_usernames(),
         "profiles": get_online_profile_ids(),
+        "busy": get_busy_names(),
+    }, to="chat")
+
+
+def _call_state(sid):
+    return calls.get(sid, {"peer": None, "state": "idle"})
+
+
+def _set_call_state(sid, peer=None, state="idle"):
+    calls[sid] = {"peer": peer, "state": state}
+
+
+def _clear_call(sid):
+    if not sid:
+        return
+    info = calls.pop(sid, None)
+    if not info:
+        return
+    peer = info.get("peer")
+    if peer and peer in calls:
+        calls.pop(peer, None)
+
+
+def broadcast_busy():
+    socketio.emit("call_busy_update", {
+        "busy": get_busy_names()
     }, to="chat")
 
 
@@ -131,6 +172,7 @@ def status():
             "max": MAX_CONNECTIONS,
             "users": get_online_usernames(),
             "profiles": get_online_profile_ids(),
+            "busy": get_busy_names(),
         })
 
 
@@ -173,6 +215,31 @@ def api_profiles():
 
 
 # ─────────────────────────────────────────────
+#  ICE servers (STUN + TURN اختیاری)
+# ─────────────────────────────────────────────
+@app.route("/api/ice")
+def api_ice():
+    """ICE servers برای WebRTC."""
+    servers = [
+        {"urls": "stun:stun.l.google.com:19302"},
+        {"urls": "stun:stun1.l.google.com:19302"},
+        {"urls": "stun:stun2.l.google.com:19302"},
+    ]
+
+    turn_url = os.environ.get("TURN_URL")
+    turn_user = os.environ.get("TURN_USER")
+    turn_pass = os.environ.get("TURN_PASS")
+    if turn_url and turn_user and turn_pass:
+        servers.append({
+            "urls": turn_url,
+            "username": turn_user,
+            "credential": turn_pass,
+        })
+
+    return jsonify({"iceServers": servers})
+
+
+# ─────────────────────────────────────────────
 #  SocketIO: Connection
 # ─────────────────────────────────────────────
 @socketio.on("connect")
@@ -196,6 +263,7 @@ def on_connect():
         "history": list(chat_history),
         "online_users": get_online_usernames(),
         "online_profiles": get_online_profile_ids(),
+        "busy": get_busy_names(),
         "profiles": {uid: {"name": p["name"], "avatar": p["avatar"], "emoji": p["emoji"]}
                      for uid, p in PROFILES.items()},
     })
@@ -213,6 +281,14 @@ def on_disconnect():
             del online_users[sid]
             active_connections = max(0, active_connections - 1)
         typing_users.pop(sid, None)
+
+    # پایان دادن به تماس فعال (اگر بود)
+    call_info = calls.get(sid)
+    if call_info and call_info.get("peer"):
+        peer = call_info["peer"]
+        socketio.emit("call_ended", {"by_sid": sid}, to=peer)
+        calls.pop(peer, None)
+    calls.pop(sid, None)
 
     if username and username != "مهمان":
         msg = system_message(f"{username} از چت خارج شد")
@@ -234,7 +310,6 @@ def on_join_chat(data):
     username = (data.get("username", "") or "").strip()[:20] or "مهمان"
     profile_id = data.get("profile_id")
 
-    # اگر profile_id معتبر بود، اسم و آواتار از پروفایل گرفته می‌شه
     if profile_id and profile_id in PROFILES:
         p = PROFILES[profile_id]
         username = p["name"]
@@ -251,7 +326,6 @@ def on_join_chat(data):
 
     join_room("chat")
 
-    # پیام سیستمی ورود
     if username != "مهمان" and old_name != username:
         msg = system_message(f"{username} وارد چت شد")
         with lock:
@@ -263,7 +337,7 @@ def on_join_chat(data):
 
 
 # ─────────────────────────────────────────────
-#  SocketIO: Chat Message (text / image / video / audio)
+#  SocketIO: Chat Message
 # ─────────────────────────────────────────────
 @socketio.on("chat_message")
 def on_chat_message(data):
@@ -282,7 +356,6 @@ def on_chat_message(data):
     content = data.get("content", "")
     filename = data.get("filename", "")
 
-    # فقط انواع مجاز
     if msg_type not in ALLOWED_MSG_TYPES:
         emit("chat_error", {"message": "نوع پیام پشتیبانی نمی‌شود."})
         return
@@ -292,7 +365,6 @@ def on_chat_message(data):
         if not content.strip():
             return
     else:
-        # حجم base64 تقریباً ۸MB (برای عکس، ویدیو و ویس یکسان)
         if len(content) > 12 * 1024 * 1024:
             emit("chat_error", {"message": "فایل خیلی بزرگ است (حداکثر ۸MB)."})
             return
@@ -301,14 +373,13 @@ def on_chat_message(data):
 
     msg_id = f"{int(time.time() * 1000)}-{request.sid[:6]}"
 
-    # اگر کاربر پروفایل داره، آواتار و اسم پروفایل هم بفرست
     avatar = None
     if profile_id and profile_id in PROFILES:
         avatar = PROFILES[profile_id]["avatar"]
 
     payload = {
         "id": msg_id,
-        "type": msg_type,          # text | image | video | audio
+        "type": msg_type,
         "content": content,
         "filename": filename,
         "username": username,
@@ -336,7 +407,6 @@ def on_chat_message(data):
 # ─────────────────────────────────────────────
 @socketio.on("typing")
 def on_typing(data):
-    """کاربر در حال تایپ است."""
     is_typing = (data or {}).get("typing", False)
 
     with lock:
@@ -355,7 +425,6 @@ def on_typing(data):
 # ─────────────────────────────────────────────
 @socketio.on("mark_read")
 def on_mark_read(data):
-    """کاربر پیامی رو خونده."""
     msg_id = (data or {}).get("id")
     if not msg_id:
         return
@@ -375,6 +444,119 @@ def on_mark_read(data):
                     "reader": reader,
                 }, to="chat")
                 break
+
+
+# ─────────────────────────────────────────────
+#  SocketIO: Voice Call Signaling (WebRTC)
+# ─────────────────────────────────────────────
+@socketio.on("call_request")
+def on_call_request(data=None):
+    """درخواست تماس صوتی؛ به بقیه‌ی اعضای چت خبر بده."""
+    with lock:
+        info = online_users.get(request.sid)
+        if not info:
+            return
+        caller_name = info["username"]
+
+    st = _call_state(request.sid)
+    if st["state"] != "idle":
+        emit("call_error", {"message": "شما در حال حاضر در یک تماس هستید."})
+        return
+
+    _set_call_state(request.sid, peer=None, state="calling")
+
+    socketio.emit("incoming_call", {
+        "from_sid": request.sid,
+        "from_name": caller_name,
+    }, to="chat", skip_sid=request.sid)
+
+
+@socketio.on("call_accept")
+def on_call_accept(data):
+    """کاربر تماس رو قبول کرد."""
+    caller_sid = (data or {}).get("to_sid")
+    if not caller_sid or caller_sid not in online_users:
+        emit("call_error", {"message": "تماس‌گیرنده در دسترس نیست."})
+        return
+
+    with lock:
+        callee_name = online_users.get(request.sid, {}).get("username", "?")
+
+    _set_call_state(request.sid, peer=caller_sid, state="active")
+    _set_call_state(caller_sid, peer=request.sid, state="active")
+
+    socketio.emit("call_accepted", {
+        "by_sid": request.sid,
+        "by_name": callee_name,
+    }, to=caller_sid)
+
+    broadcast_busy()
+
+
+@socketio.on("call_reject")
+def on_call_reject(data):
+    """کاربر تماس رو رد کرد."""
+    caller_sid = (data or {}).get("to_sid")
+    if caller_sid:
+        socketio.emit("call_rejected", {
+            "by_sid": request.sid,
+        }, to=caller_sid)
+    _clear_call(request.sid)
+    if caller_sid:
+        _clear_call(caller_sid)
+    broadcast_busy()
+
+
+@socketio.on("call_end")
+def on_call_end(data=None):
+    """یکی از طرفین تماس رو قطع کرد."""
+    info = _call_state(request.sid)
+    peer = info.get("peer")
+
+    if peer:
+        socketio.emit("call_ended", {"by_sid": request.sid}, to=peer)
+
+    _clear_call(request.sid)
+    if peer:
+        _clear_call(peer)
+
+    broadcast_busy()
+
+
+@socketio.on("webrtc_offer")
+def on_webrtc_offer(data):
+    target = (data or {}).get("to_sid")
+    offer = (data or {}).get("offer")
+    if not target or not offer:
+        return
+    socketio.emit("webrtc_offer", {
+        "from_sid": request.sid,
+        "offer": offer,
+    }, to=target)
+
+
+@socketio.on("webrtc_answer")
+def on_webrtc_answer(data):
+    target = (data or {}).get("to_sid")
+    answer = (data or {}).get("answer")
+    if not target or not answer:
+        return
+    socketio.emit("webrtc_answer", {
+        "from_sid": request.sid,
+        "answer": answer,
+    }, to=target)
+
+
+@socketio.on("webrtc_ice")
+def on_webrtc_ice(data):
+    target = (data or {}).get("to_sid")
+    candidate = (data or {}).get("candidate")
+    if not target or not candidate:
+        return
+    socketio.emit("webrtc_ice", {
+        "from_sid": request.sid,
+        "candidate": candidate,
+    }, to=target)
 
 
 # ─────────────────────────────────────────────
