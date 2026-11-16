@@ -1,10 +1,8 @@
 /* ═══════════════════════════════════════════════════════════════════
-   Elshan & Anil Messenger — Service Worker
-   - نمایش نوتیفیکیشن وقتی سایت بازه ولی فوکوس نداره
-   - کش کردن فایل‌ه.ای اصلی برای آفلاین
+   Elshan & Anil Messenger — Service Worker (with Push API)
    ═══════════════════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'messenger-v1';
+const CACHE_NAME = 'messenger-v2';
 const PRECACHE_URLS = [
   '/',
   '/login',
@@ -34,12 +32,12 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-/* ── Fetch: استراتژی network-first برای API، cache-first برای استاتیک ── */
+/* ── Fetch: استراتژی هوشمند ── */
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // درخواست‌های SocketIO / API رو کش نکن
+  // درخواست‌های SocketIO / API / Push رو کش نکن
   if (
     url.pathname.startsWith('/socket.io') ||
     url.pathname.startsWith('/api/') ||
@@ -48,7 +46,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // برای فایل‌های استاتیک: cache-first
+  // فایل‌های استاتیک → cache-first
   if (
     url.pathname.startsWith('/static/') ||
     url.hostname.includes('fonts.g') ||
@@ -68,7 +66,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // بقیه: network-first با fallback به کش
+  // بقیه → network-first با fallback به کش
   event.respondWith(
     fetch(req).then((res) => {
       const copy = res.clone();
@@ -78,7 +76,47 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-/* ── دریافت پیام از کلاینت برای نمایش نوتیفیکیشن ── */
+/* ═══════════════════════════════════════════════════════════════════
+   PUSH EVENT — مهم‌ترین بخش برای نوتیفیکیشن وقتی سایت بسته است
+   ═══════════════════════════════════════════════════════════════════ */
+self.addEventListener('push', (event) => {
+  let data = {
+    title: 'پیام جدید 💜',
+    body: '',
+    icon: '/favicon.ico',
+    tag: 'messenger-message',
+    data: { url: '/' },
+  };
+
+  if (event.data) {
+    try {
+      const parsed = event.data.json();
+      data = { ...data, ...parsed };
+    } catch (e) {
+      // اگر JSON نبود، به‌عنوان متن ساده
+      data.body = event.data.text();
+    }
+  }
+
+  const options = {
+    body: data.body || '',
+    icon: data.icon || '/favicon.ico',
+    badge: '/favicon.ico',
+    tag: data.tag || 'messenger-message',
+    renotify: true,
+    requireInteraction: false,
+    dir: 'rtl',
+    lang: 'fa',
+    vibrate: [80, 40, 80],
+    data: data.data || { url: '/' },
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'پیام جدید 💜', options)
+  );
+});
+
+/* ── دریافت پیام از کلاینت (fallback برای حالت باز) ── */
 self.addEventListener('message', (event) => {
   const data = event.data || {};
 
@@ -115,7 +153,6 @@ self.addEventListener('notificationclick', (event) => {
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
-      // اگه تبی از سایت بازه، فوکوسش کن
       for (const client of clients) {
         try {
           const clientUrl = new URL(client.url);
@@ -130,7 +167,6 @@ self.addEventListener('notificationclick', (event) => {
           }
         } catch (e) {}
       }
-      // وگرنه تب جدید باز کن
       if (self.clients.openWindow) {
         return self.clients.openWindow(targetUrl);
       }
@@ -138,7 +174,7 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-/* ── بستن نوتیفیکیشن ── */
+/* ── بستن نوتیفیکیشن (اختیاری) ── */
 self.addEventListener('notificationclose', (event) => {
-  // اختیاری: می‌تونی رویداد رو به کلاینت بفرستی
+  // می‌تونی آمار بفرستی
 });
