@@ -1,6 +1,6 @@
 # ─────────────────────────────────────────────
 #  Elshan & Anil — Personal Messenger
-#  app.py — Flask + Flask-SocketIO + WebRTC + Reactions + Edit + Reply + Delete
+#  app.py — Flask + Flask-SocketIO + WebRTC + Web Push
 #  ⚠️ eventlet.monkey_patch() باید قبل از هر import دیگری باشد
 # ─────────────────────────────────────────────
 
@@ -11,20 +11,37 @@ import os
 import time
 import threading
 import uuid
+import json
 from collections import deque
 
 from flask import Flask, render_template, request, jsonify, send_from_directory
 from flask_socketio import SocketIO, emit, join_room
 
 # ─────────────────────────────────────────────
+#  Web Push (اختیاری — اگر نصب باشد)
+# ─────────────────────────────────────────────
+try:
+    from pywebpush import webpush, WebPushException
+    from py_vapid import Vapid
+    WEBPUSH_AVAILABLE = True
+except ImportError:
+    WEBPUSH_AVAILABLE = False
+    print("[WARN] pywebpush/py-vapid نصب نیست — Push API غیرفعال است")
+
+# ─────────────────────────────────────────────
 #  تنظیمات
 # ─────────────────────────────────────────────
 MAX_CONNECTIONS = 4
 MAX_HISTORY = 200
-EDIT_WINDOW_SECONDS = 15 * 60   # فقط تا ۱۵ دقیقه بعد از ارسال می‌شه ویرایش کرد
+EDIT_WINDOW_SECONDS = 15 * 60
 
 ALLOWED_MSG_TYPES = {"text", "image", "video", "audio"}
 ALLOWED_REACTIONS = {"❤️", "😂", "👍", "😮", "😢", "🔥"}
+
+# VAPID
+VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "")
+VAPID_PRIVATE_KEY_PATH = os.environ.get("VAPID_PRIVATE_KEY_PATH", "private_key.pem")
+VAPID_SUBJECT = os.environ.get("VAPID_SUBJECT", "mailto:admin@example.com")
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "elshan-anil-messenger-2025")
@@ -63,13 +80,16 @@ PROFILES = {
 # ─────────────────────────────────────────────
 lock = threading.Lock()
 active_connections = 0
-online_users = {}                     # sid -> {username, joined_at, profile_id}
+online_users = {}
 chat_history = deque(maxlen=MAX_HISTORY)
 typing_users = {}
 
 # Call state
 calls = {}
 call_modes = {}
+
+# Push subscriptions: sid -> subscription info
+push_subscriptions = {}
 
 
 # ─────────────────────────────────────────────
@@ -132,13 +152,10 @@ def broadcast_online():
 
 
 def broadcast_busy():
-    socketio.emit("call_busy_update", {
-        "busy": get_busy_names()
-    }, to="chat")
+    socketio.emit("call_busy_update", {"busy": get_busy_names()}, to="chat")
 
 
 def find_message(msg_id):
-    """پیدا کردن پیام توی history با id. (caller باید lock داشته باشه)"""
     for msg in chat_history:
         if msg.get("id") == msg_id:
             return msg
@@ -176,6 +193,57 @@ def _clear_call(sid):
 
 
 # ─────────────────────────────────────────────
+#  Web Push
+# ─────────────────────────────────────────────
+def send_web_push(subscription_info, payload, ttl=86400):
+    """ارسال push به یک subscription."""
+    if not WEBPUSH_AVAILABLE:
+        return False
+    if not VAPID_PUBLIC_KEY or not os.path.exists(VAPID_PRIVATE_KEY_PATH):
+        return False
+
+    try:
+        webpush(
+            subscription_info=subscription_info,
+            data=json.dumps(payload, ensure_ascii=False),
+            vapid_private_key=VAPID_PRIVATE_KEY_PATH,
+            vapid_claims={"sub": VAPID_SUBJECT},
+            ttl=ttl,
+        )
+        return True
+    except WebPushException as e:
+        # اگر subscription منقضی شده (410)، حذفش کن
+        status = getattr(e.response, "status_code", None)
+        if status in (404, 410):
+            return False  # نامعتبر
+        print(f"[WebPush] خطا: {e}")
+        return False
+    except Exception as e:
+        print(f"[WebPush] خطای غیرمنتظره: {e}")
+        return False
+
+
+def push_to_all_except(sender_sid, payload):
+    """ارسال push به همه‌ی subscriptionها به‌جز فرستنده."""
+    if not WEBPUSH_AVAILABLE:
+        return
+    with lock:
+        items = [(sid, sub) for sid, sub in push_subscriptions.items() if sid != sender_sid]
+
+    invalid = []
+    for sid, sub in items:
+        ok = send_web_push(sub, payload)
+        if not ok:
+            # اگر نامعتبر بود (410/404)، برای حذف علامت بزن
+            invalid.append(sid)
+
+    if invalid:
+        with lock:
+            for sid in invalid:
+                push_subscriptions.pop(sid, None)
+
+
+# ─────────────────────────────────────────────
 #  Routes — Chat
 # ─────────────────────────────────────────────
 @app.route("/")
@@ -185,7 +253,6 @@ def index():
 
 @app.route("/sw.js")
 def service_worker():
-    """سرو کردن Service Worker از روت (چون توی static نیست)."""
     response = send_from_directory(
         os.path.join(app.root_path, "static"),
         "sw.js",
@@ -210,9 +277,64 @@ def status():
 
 @app.route("/api/history")
 def api_history():
-    """دریافت تاریخچه برای بارگذاری اولیه (اختیاری)."""
     with lock:
         return jsonify({"history": list(chat_history)})
+
+
+# ─────────────────────────────────────────────
+#  Routes — Push API
+# ─────────────────────────────────────────────
+@app.route("/api/push/vapid-public-key")
+def api_vapid_public_key():
+    """کلید عمومی VAPID برای کلاینت."""
+    if not VAPID_PUBLIC_KEY:
+        return jsonify({"error": "VAPID public key تنظیم نشده"}), 500
+    return jsonify({"publicKey": VAPID_PUBLIC_KEY})
+
+
+@app.route("/api/push/subscribe", methods=["POST"])
+def api_push_subscribe():
+    """ذخیره‌ی subscription."""
+    data = request.get_json(silent=True) or {}
+    subscription = data.get("subscription")
+    sid = data.get("sid") or "anonymous"
+
+    if not subscription or not isinstance(subscription, dict):
+        return jsonify({"error": "subscription نامعتبر"}), 400
+
+    endpoint = subscription.get("endpoint")
+    if not endpoint:
+        return jsonify({"error": "endpoint ندارد"}), 400
+
+    with lock:
+        push_subscriptions[sid] = subscription
+
+    print(f"[Push] subscribed: sid={sid[:8]}...")
+    return jsonify({"ok": True, "count": len(push_subscriptions)})
+
+
+@app.route("/api/push/unsubscribe", methods=["POST"])
+def api_push_unsubscribe():
+    data = request.get_json(silent=True) or {}
+    sid = data.get("sid")
+    with lock:
+        if sid and sid in push_subscriptions:
+            push_subscriptions.pop(sid, None)
+    return jsonify({"ok": True})
+
+
+@app.route("/api/push/test", methods=["POST"])
+def api_push_test():
+    """ارسال یک push تستی به همه."""
+    payload = {
+        "title": "تست Push 💜",
+        "body": "اگر این را می‌بینی، Push کار می‌کند!",
+        "icon": "/favicon.ico",
+        "tag": "test",
+        "data": {"url": "/"},
+    }
+    push_to_all_except(None, payload)
+    return jsonify({"ok": True, "count": len(push_subscriptions)})
 
 
 # ─────────────────────────────────────────────
@@ -316,6 +438,7 @@ def on_disconnect():
             del online_users[sid]
             active_connections = max(0, active_connections - 1)
         typing_users.pop(sid, None)
+        push_subscriptions.pop(sid, None)
 
     call_info = calls.get(sid)
     if call_info and call_info.get("peer"):
@@ -370,7 +493,7 @@ def on_join_chat(data):
 
 
 # ─────────────────────────────────────────────
-#  SocketIO: Chat Message (با پشتیبانی از reply_to)
+#  SocketIO: Chat Message
 # ─────────────────────────────────────────────
 @socketio.on("chat_message")
 def on_chat_message(data):
@@ -388,8 +511,7 @@ def on_chat_message(data):
     content = data.get("content", "")
     filename = data.get("filename", "")
 
-    # reply_to (اختیاری)
-    reply_to = data.get("reply_to")  # { id, username, snippet }
+    reply_to = data.get("reply_to")
     reply_payload = None
     if reply_to and isinstance(reply_to, dict) and reply_to.get("id"):
         reply_payload = {
@@ -431,11 +553,12 @@ def on_chat_message(data):
         "avatar": avatar,
         "timestamp": data.get("timestamp") or now_iso(),
         "read_by": [],
-        "reactions": {},        # { emoji: [username, ...] }
+        "reactions": {},
         "reply_to": reply_payload,
         "edited_at": None,
         "deleted": False,
         "system": False,
+        "created_ts": now_ts(),
     }
 
     with lock:
@@ -444,7 +567,7 @@ def on_chat_message(data):
 
     socketio.emit("chat_message", payload, to="chat")
 
-    # نوتیفیکیشن (سمت سرور فقط broadcast می‌کنه؛ کلاینت تصمیم می‌گیره)
+    # Notification (in-page — فقط وقتی سایت باز است)
     notify_payload = {
         "id": msg_id,
         "username": username,
@@ -456,6 +579,29 @@ def on_chat_message(data):
         "sender_sid": request.sid,
     }
     socketio.emit("notification", notify_payload, to="chat", skip_sid=request.sid)
+
+    # Web Push (وقتی سایت بسته است)
+    push_title = username or "پیام جدید"
+    if msg_type == "text":
+        push_body = content[:120]
+    elif msg_type == "image":
+        push_body = "🖼 عکس فرستاد"
+    elif msg_type == "video":
+        push_body = "🎬 ویدیو فرستاد"
+    elif msg_type == "audio":
+        push_body = "🎙 پیام صوتی فرستاد"
+    else:
+        push_body = "پیام جدید"
+
+    push_payload = {
+        "title": push_title,
+        "body": push_body,
+        "icon": avatar or "/favicon.ico",
+        "tag": f"msg-{msg_id}",
+        "data": {"url": "/", "msg_id": msg_id},
+    }
+    # در thread جدا تا بلاک نشه
+    eventlet.spawn_n(push_to_all_except, request.sid, push_payload)
 
     socketio.emit("typing_update", {
         "typing": [online_users[s]["username"] for s in typing_users if s in online_users],
@@ -511,7 +657,6 @@ def on_mark_read(data):
 # ─────────────────────────────────────────────
 @socketio.on("react_message")
 def on_react_message(data):
-    """افزودن/حذف ری‌اکشن (toggle)."""
     data = data or {}
     msg_id = data.get("id")
     emoji = data.get("emoji")
@@ -538,7 +683,6 @@ def on_react_message(data):
             users.append(username)
             action = "added"
 
-        # اگه خالی شد، کلید رو حذف کن
         if not users:
             reactions.pop(emoji, None)
 
@@ -554,13 +698,12 @@ def on_react_message(data):
 
 
 # ─────────────────────────────────────────────
-#  SocketIO: Delete Message
+#  SocketIO: Delete
 # ─────────────────────────────────────────────
 @socketio.on("delete_message")
 def on_delete_message(data):
-    """حذف پیام. فقط صاحب پیام می‌تونه برای همه حذف کنه."""
     msg_id = (data or {}).get("id")
-    scope = (data or {}).get("scope", "everyone")  # "everyone" | "me"
+    scope = (data or {}).get("scope", "everyone")
 
     if not msg_id:
         return
@@ -575,7 +718,6 @@ def on_delete_message(data):
         if not msg or msg.get("system"):
             return
 
-        # فقط صاحب پیام اجازه‌ی حذف برای همه رو داره
         if scope == "everyone" and msg.get("username") != username:
             emit("chat_error", {"message": "فقط فرستنده می‌تواند پیام را برای همه حذف کند."})
             return
@@ -585,7 +727,6 @@ def on_delete_message(data):
         msg["deleted_scope"] = scope
         msg["deleted_at"] = now_iso()
 
-        # محتوای حساس رو پاک کن (برای حفظ حریم خصوصی)
         if scope == "everyone":
             msg["content"] = ""
             msg["filename"] = ""
@@ -600,11 +741,10 @@ def on_delete_message(data):
 
 
 # ─────────────────────────────────────────────
-#  SocketIO: Edit Message
+#  SocketIO: Edit
 # ─────────────────────────────────────────────
 @socketio.on("edit_message")
 def on_edit_message(data):
-    """ویرایش متن پیام. فقط صاحب پیام و فقط تا ۱۵ دقیقه."""
     data = data or {}
     msg_id = data.get("id")
     new_content = str(data.get("content", ""))[:2000]
@@ -630,7 +770,6 @@ def on_edit_message(data):
             emit("chat_error", {"message": "فقط پیام‌های متنی قابل ویرایش هستند."})
             return
 
-        # محدودیت زمانی
         created = msg.get("created_ts")
         if created and (now_ts() - created) > EDIT_WINDOW_SECONDS:
             emit("chat_error", {"message": "زمان ویرایش (۱۵ دقیقه) گذشته است."})
