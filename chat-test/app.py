@@ -1,6 +1,6 @@
 # ─────────────────────────────────────────────
 #  Elshan & Anil — Personal Messenger
-#  app.py — Flask + Flask-SocketIO + WebRTC (Audio + Video)
+#  app.py — Flask + Flask-SocketIO + WebRTC + Reactions + Edit + Reply + Delete
 #  ⚠️ eventlet.monkey_patch() باید قبل از هر import دیگری باشد
 # ─────────────────────────────────────────────
 
@@ -10,9 +10,10 @@ eventlet.monkey_patch()
 import os
 import time
 import threading
+import uuid
 from collections import deque
 
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 from flask_socketio import SocketIO, emit, join_room
 
 # ─────────────────────────────────────────────
@@ -20,8 +21,10 @@ from flask_socketio import SocketIO, emit, join_room
 # ─────────────────────────────────────────────
 MAX_CONNECTIONS = 4
 MAX_HISTORY = 200
+EDIT_WINDOW_SECONDS = 15 * 60   # فقط تا ۱۵ دقیقه بعد از ارسال می‌شه ویرایش کرد
 
 ALLOWED_MSG_TYPES = {"text", "image", "video", "audio"}
+ALLOWED_REACTIONS = {"❤️", "😂", "👍", "😮", "😢", "🔥"}
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "elshan-anil-messenger-2025")
@@ -65,9 +68,7 @@ chat_history = deque(maxlen=MAX_HISTORY)
 typing_users = {}
 
 # Call state
-# sid -> { "peer": sid | None, "state": "idle"|"calling"|"active" }
 calls = {}
-# sid -> "audio" | "video"
 call_modes = {}
 
 
@@ -76,6 +77,10 @@ call_modes = {}
 # ─────────────────────────────────────────────
 def now_iso():
     return time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime())
+
+
+def now_ts():
+    return time.time()
 
 
 def get_online_usernames():
@@ -108,6 +113,7 @@ def get_busy_names():
 
 def system_message(text, msg_type="system"):
     return {
+        "id": f"sys-{uuid.uuid4().hex[:10]}",
         "type": msg_type,
         "text": text,
         "timestamp": now_iso(),
@@ -131,6 +137,14 @@ def broadcast_busy():
     }, to="chat")
 
 
+def find_message(msg_id):
+    """پیدا کردن پیام توی history با id. (caller باید lock داشته باشه)"""
+    for msg in chat_history:
+        if msg.get("id") == msg_id:
+            return msg
+    return None
+
+
 def _call_state(sid):
     return calls.get(sid, {"peer": None, "state": "idle"})
 
@@ -149,7 +163,6 @@ def _get_call_mode(sid):
 
 
 def _clear_call(sid):
-    """پاک‌سازی کامل تماس (peer + mode)."""
     if not sid:
         return
     info = calls.pop(sid, None)
@@ -170,6 +183,19 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/sw.js")
+def service_worker():
+    """سرو کردن Service Worker از روت (چون توی static نیست)."""
+    response = send_from_directory(
+        os.path.join(app.root_path, "static"),
+        "sw.js",
+        mimetype="application/javascript",
+    )
+    response.headers["Service-Worker-Allowed"] = "/"
+    response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
 @app.route("/api/status")
 def status():
     with lock:
@@ -180,6 +206,13 @@ def status():
             "profiles": get_online_profile_ids(),
             "busy": get_busy_names(),
         })
+
+
+@app.route("/api/history")
+def api_history():
+    """دریافت تاریخچه برای بارگذاری اولیه (اختیاری)."""
+    with lock:
+        return jsonify({"history": list(chat_history)})
 
 
 # ─────────────────────────────────────────────
@@ -218,7 +251,7 @@ def api_profiles():
 
 
 # ─────────────────────────────────────────────
-#  ICE servers (STUN + TURN اختیاری)
+#  ICE servers
 # ─────────────────────────────────────────────
 @app.route("/api/ice")
 def api_ice():
@@ -227,7 +260,6 @@ def api_ice():
         {"urls": "stun:stun1.l.google.com:19302"},
         {"urls": "stun:stun2.l.google.com:19302"},
     ]
-
     turn_url = os.environ.get("TURN_URL")
     turn_user = os.environ.get("TURN_USER")
     turn_pass = os.environ.get("TURN_PASS")
@@ -237,7 +269,6 @@ def api_ice():
             "username": turn_user,
             "credential": turn_pass,
         })
-
     return jsonify({"iceServers": servers})
 
 
@@ -267,6 +298,7 @@ def on_connect():
         "online_profiles": get_online_profile_ids(),
         "busy": get_busy_names(),
         "call_modes": ["audio", "video"],
+        "allowed_reactions": list(ALLOWED_REACTIONS),
         "profiles": {uid: {"name": p["name"], "avatar": p["avatar"], "emoji": p["emoji"]}
                      for uid, p in PROFILES.items()},
     })
@@ -285,7 +317,6 @@ def on_disconnect():
             active_connections = max(0, active_connections - 1)
         typing_users.pop(sid, None)
 
-    # پایان دادن به تماس فعال (اگر بود)
     call_info = calls.get(sid)
     if call_info and call_info.get("peer"):
         peer = call_info["peer"]
@@ -339,7 +370,7 @@ def on_join_chat(data):
 
 
 # ─────────────────────────────────────────────
-#  SocketIO: Chat Message
+#  SocketIO: Chat Message (با پشتیبانی از reply_to)
 # ─────────────────────────────────────────────
 @socketio.on("chat_message")
 def on_chat_message(data):
@@ -356,6 +387,17 @@ def on_chat_message(data):
     msg_type = data.get("type", "text")
     content = data.get("content", "")
     filename = data.get("filename", "")
+
+    # reply_to (اختیاری)
+    reply_to = data.get("reply_to")  # { id, username, snippet }
+    reply_payload = None
+    if reply_to and isinstance(reply_to, dict) and reply_to.get("id"):
+        reply_payload = {
+            "id": str(reply_to.get("id"))[:64],
+            "username": str(reply_to.get("username", ""))[:20],
+            "snippet": str(reply_to.get("snippet", ""))[:120],
+            "type": str(reply_to.get("type", "text"))[:20],
+        }
 
     if msg_type not in ALLOWED_MSG_TYPES:
         emit("chat_error", {"message": "نوع پیام پشتیبانی نمی‌شود."})
@@ -389,6 +431,10 @@ def on_chat_message(data):
         "avatar": avatar,
         "timestamp": data.get("timestamp") or now_iso(),
         "read_by": [],
+        "reactions": {},        # { emoji: [username, ...] }
+        "reply_to": reply_payload,
+        "edited_at": None,
+        "deleted": False,
         "system": False,
     }
 
@@ -397,6 +443,19 @@ def on_chat_message(data):
         typing_users.pop(request.sid, None)
 
     socketio.emit("chat_message", payload, to="chat")
+
+    # نوتیفیکیشن (سمت سرور فقط broadcast می‌کنه؛ کلاینت تصمیم می‌گیره)
+    notify_payload = {
+        "id": msg_id,
+        "username": username,
+        "avatar": avatar,
+        "type": msg_type,
+        "text": content if msg_type == "text" else "",
+        "filename": filename,
+        "timestamp": payload["timestamp"],
+        "sender_sid": request.sid,
+    }
+    socketio.emit("notification", notify_payload, to="chat", skip_sid=request.sid)
 
     socketio.emit("typing_update", {
         "typing": [online_users[s]["username"] for s in typing_users if s in online_users],
@@ -436,23 +495,164 @@ def on_mark_read(data):
             return
         reader = info["username"]
 
-        for msg in chat_history:
-            if msg.get("id") == msg_id and not msg.get("system"):
-                if reader not in msg["read_by"]:
-                    msg["read_by"].append(reader)
-                socketio.emit("message_read", {
-                    "id": msg_id,
-                    "reader": reader,
-                }, to="chat")
-                break
+        msg = find_message(msg_id)
+        if msg and not msg.get("system"):
+            read_by = msg.setdefault("read_by", [])
+            if reader not in read_by:
+                read_by.append(reader)
+            socketio.emit("message_read", {
+                "id": msg_id,
+                "reader": reader,
+            }, to="chat")
 
 
 # ─────────────────────────────────────────────
-#  SocketIO: Call Signaling (Audio + Video)
+#  SocketIO: Reactions
+# ─────────────────────────────────────────────
+@socketio.on("react_message")
+def on_react_message(data):
+    """افزودن/حذف ری‌اکشن (toggle)."""
+    data = data or {}
+    msg_id = data.get("id")
+    emoji = data.get("emoji")
+    if not msg_id or emoji not in ALLOWED_REACTIONS:
+        return
+
+    with lock:
+        info = online_users.get(request.sid)
+        if not info:
+            return
+        username = info["username"]
+
+        msg = find_message(msg_id)
+        if not msg or msg.get("deleted"):
+            return
+
+        reactions = msg.setdefault("reactions", {})
+        users = reactions.setdefault(emoji, [])
+
+        if username in users:
+            users.remove(username)
+            action = "removed"
+        else:
+            users.append(username)
+            action = "added"
+
+        # اگه خالی شد، کلید رو حذف کن
+        if not users:
+            reactions.pop(emoji, None)
+
+        current = {e: list(u) for e, u in reactions.items()}
+
+    socketio.emit("message_reaction", {
+        "id": msg_id,
+        "reactions": current,
+        "by": username,
+        "action": action,
+        "emoji": emoji,
+    }, to="chat")
+
+
+# ─────────────────────────────────────────────
+#  SocketIO: Delete Message
+# ─────────────────────────────────────────────
+@socketio.on("delete_message")
+def on_delete_message(data):
+    """حذف پیام. فقط صاحب پیام می‌تونه برای همه حذف کنه."""
+    msg_id = (data or {}).get("id")
+    scope = (data or {}).get("scope", "everyone")  # "everyone" | "me"
+
+    if not msg_id:
+        return
+
+    with lock:
+        info = online_users.get(request.sid)
+        if not info:
+            return
+        username = info["username"]
+
+        msg = find_message(msg_id)
+        if not msg or msg.get("system"):
+            return
+
+        # فقط صاحب پیام اجازه‌ی حذف برای همه رو داره
+        if scope == "everyone" and msg.get("username") != username:
+            emit("chat_error", {"message": "فقط فرستنده می‌تواند پیام را برای همه حذف کند."})
+            return
+
+        msg["deleted"] = True
+        msg["deleted_by"] = username
+        msg["deleted_scope"] = scope
+        msg["deleted_at"] = now_iso()
+
+        # محتوای حساس رو پاک کن (برای حفظ حریم خصوصی)
+        if scope == "everyone":
+            msg["content"] = ""
+            msg["filename"] = ""
+            msg["type"] = "deleted"
+            msg["reactions"] = {}
+
+    socketio.emit("message_deleted", {
+        "id": msg_id,
+        "scope": scope,
+        "by": username,
+    }, to="chat")
+
+
+# ─────────────────────────────────────────────
+#  SocketIO: Edit Message
+# ─────────────────────────────────────────────
+@socketio.on("edit_message")
+def on_edit_message(data):
+    """ویرایش متن پیام. فقط صاحب پیام و فقط تا ۱۵ دقیقه."""
+    data = data or {}
+    msg_id = data.get("id")
+    new_content = str(data.get("content", ""))[:2000]
+
+    if not msg_id or not new_content.strip():
+        return
+
+    with lock:
+        info = online_users.get(request.sid)
+        if not info:
+            return
+        username = info["username"]
+
+        msg = find_message(msg_id)
+        if not msg or msg.get("system") or msg.get("deleted"):
+            return
+
+        if msg.get("username") != username:
+            emit("chat_error", {"message": "فقط فرستنده می‌تواند پیام را ویرایش کند."})
+            return
+
+        if msg.get("type") != "text":
+            emit("chat_error", {"message": "فقط پیام‌های متنی قابل ویرایش هستند."})
+            return
+
+        # محدودیت زمانی
+        created = msg.get("created_ts")
+        if created and (now_ts() - created) > EDIT_WINDOW_SECONDS:
+            emit("chat_error", {"message": "زمان ویرایش (۱۵ دقیقه) گذشته است."})
+            return
+
+        msg["content"] = new_content
+        msg["edited_at"] = now_iso()
+
+        updated = {
+            "id": msg_id,
+            "content": new_content,
+            "edited_at": msg["edited_at"],
+        }
+
+    socketio.emit("message_edited", updated, to="chat")
+
+
+# ─────────────────────────────────────────────
+#  SocketIO: Call Signaling
 # ─────────────────────────────────────────────
 @socketio.on("call_request")
 def on_call_request(data=None):
-    """درخواست تماس (audio یا video)."""
     data = data or {}
     mode = data.get("mode", "audio")
     if mode not in ("audio", "video"):
@@ -481,14 +681,6 @@ def on_call_request(data=None):
 
 @socketio.on("call_accept")
 def on_call_accept(data):
-    """
-    قبول تماس.
-    callee_mode: "audio" یا "video" — کلاینت می‌گه دوربین داره یا نه.
-    هر طرف می‌تونه independent باشه:
-      - اگر caller دوربین داشت → ویدیو track می‌فرسته
-      - اگر callee دوربین داشت → ویدیو track می‌فرسته
-      - هر کدوم ویدیو نفرستاد، طرف مقابل فقط صداش رو می‌شنوه
-    """
     data = data or {}
     caller_sid = data.get("to_sid")
     callee_mode = data.get("mode", "audio")
@@ -509,13 +701,11 @@ def on_call_accept(data):
     _set_call_mode(request.sid, callee_mode)
     _set_call_mode(caller_sid, caller_mode)
 
-    # به تماس‌گیرنده بگو قبول شد + حالت هر طرف
     socketio.emit("call_accepted", {
         "by_sid": request.sid,
         "by_name": callee_name,
-        "caller_mode": caller_mode,   # "audio" | "video"
-        "callee_mode": callee_mode,   # "audio" | "video"
-        # final_mode فقط برای نمایش UI (اگر یکی ویدیو خواست، final_mode=video)
+        "caller_mode": caller_mode,
+        "callee_mode": callee_mode,
         "mode": "video" if (caller_mode == "video" or callee_mode == "video") else "audio",
     }, to=caller_sid)
 
