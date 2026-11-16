@@ -496,7 +496,6 @@ html, body {
 .msg-row:not(.mine) .msg-sender.other { color: var(--cyan); }
 .msg-row.mine .msg-sender { display: none; }
 
-/* ── Reply block (نقل‌قول بالای پیام) ── */
 .msg-reply-block {
   display: flex;
   flex-direction: column;
@@ -518,20 +517,10 @@ html, body {
   background: rgba(236, 72, 153, 0.12);
 }
 
-.msg-reply-block:hover {
-  background: rgba(139, 92, 246, 0.2);
-}
+.msg-reply-block:hover { background: rgba(139, 92, 246, 0.2); }
+.msg-row.mine .msg-reply-block:hover { background: rgba(236, 72, 153, 0.2); }
 
-.msg-row.mine .msg-reply-block:hover {
-  background: rgba(236, 72, 153, 0.2);
-}
-
-.msg-reply-to-name {
-  font-weight: 700;
-  color: var(--accent-2);
-  font-size: 11px;
-}
-
+.msg-reply-to-name { font-weight: 700; color: var(--accent-2); font-size: 11px; }
 .msg-row.mine .msg-reply-to-name { color: #f9a8d4; }
 
 .msg-reply-snippet {
@@ -543,7 +532,6 @@ html, body {
   max-width: 100%;
 }
 
-/* ── Bubble ── */
 .msg-bubble {
   padding: 11px 15px;
   border-radius: 20px;
@@ -582,7 +570,6 @@ html, body {
   z-index: -1;
 }
 
-/* ── Deleted bubble ── */
 .msg-bubble.deleted {
   opacity: 0.55;
   font-style: italic;
@@ -624,7 +611,6 @@ html, body {
   font-weight: 500;
 }
 
-/* ── Edited label ── */
 .msg-edited {
   font-size: 10px;
   color: var(--text-mute);
@@ -633,7 +619,6 @@ html, body {
   margin-right: 4px;
 }
 
-/* ── Meta ── */
 .msg-meta {
   display: flex;
   align-items: center;
@@ -660,7 +645,6 @@ html, body {
 
 .msg-tick.read { color: var(--cyan); text-shadow: 0 0 10px rgba(34, 211, 238, 0.6); }
 
-/* ── Reactions ── */
 .msg-reactions {
   display: flex;
   gap: 4px;
@@ -687,10 +671,7 @@ html, body {
   color: var(--text-dim);
 }
 
-.reaction-chip:hover {
-  background: var(--bg-4);
-  transform: scale(1.08);
-}
+.reaction-chip:hover { background: var(--bg-4); transform: scale(1.08); }
 
 .reaction-chip.mine {
   background: rgba(139, 92, 246, 0.2);
@@ -698,12 +679,8 @@ html, body {
   color: var(--accent-2);
 }
 
-.reaction-chip .reaction-count {
-  font-size: 10.5px;
-  font-weight: 700;
-}
+.reaction-chip .reaction-count { font-size: 10.5px; font-weight: 700; }
 
-/* ── Hover actions ── */
 .msg-actions {
   position: absolute;
   top: -12px;
@@ -745,13 +722,8 @@ html, body {
   transition: all 0.15s;
 }
 
-.msg-action-btn:hover {
-  background: var(--bg-4);
-  color: var(--text);
-  transform: scale(1.15);
-}
+.msg-action-btn:hover { background: var(--bg-4); color: var(--text); transform: scale(1.15); }
 
-/* ── Reaction picker ── */
 .reaction-picker {
   position: absolute;
   top: -48px;
@@ -789,12 +761,8 @@ html, body {
   transition: all 0.15s var(--spring);
 }
 
-.reaction-picker button:hover {
-  background: var(--bg-4);
-  transform: scale(1.25);
-}
+.reaction-picker button:hover { background: var(--bg-4); transform: scale(1.25); }
 
-/* ── System message ── */
 .msg-row.system { justify-content: center; margin: 10px 0; }
 .msg-row.system .msg-avatar { display: none; }
 .msg-row.system .msg-bubble-wrap { max-width: 88%; align-items: center; }
@@ -813,7 +781,6 @@ html, body {
 .msg-row.system .msg-bubble::before { display: none; }
 .msg-row.system .msg-meta { display: none; }
 
-/* ── Highlight (برای پرش به پیام) ── */
 @keyframes highlightFlash {
   0%, 100% { background-color: transparent; }
   30%      { background-color: rgba(139, 92, 246, 0.25); }
@@ -890,7 +857,6 @@ html, body {
   opacity: 0.5;
 }
 
-/* ── Reply/Edit preview ── */
 .compose-preview {
   display: none;
   align-items: center;
@@ -900,23 +866,14 @@ html, body {
   background: var(--bg-2);
   border-radius: 14px;
   animation: slideUp 0.3s var(--spring);
-  position: relative;
 }
 
 .compose-preview.visible { display: flex; }
 
-.compose-preview.reply-mode {
-  border-right: 3px solid var(--accent);
-}
+.compose-preview.reply-mode { border-right: 3px solid var(--accent); }
+.compose-preview.edit-mode { border-right: 3px solid var(--cyan); }
 
-.compose-preview.edit-mode {
-  border-right: 3px solid var(--cyan);
-}
-
-.compose-preview-icon {
-  font-size: 18px;
-  flex-shrink: 0;
-}
+.compose-preview-icon { font-size: 18px; flex-shrink: 0; }
 
 .compose-preview-text {
   flex: 1;
@@ -928,10 +885,7 @@ html, body {
   color: var(--text-dim);
 }
 
-.compose-preview-text strong {
-  color: var(--accent-2);
-  margin-left: 4px;
-}
+.compose-preview-text strong { color: var(--accent-2); margin-left: 4px; }
 
 .compose-preview-close {
   width: 28px;
@@ -987,12 +941,7 @@ html, body {
   flex-shrink: 0;
 }
 
-.input-action:hover {
-  background: var(--bg-4);
-  color: var(--accent-2);
-  transform: scale(1.1) rotate(8deg);
-}
-
+.input-action:hover { background: var(--bg-4); color: var(--accent-2); transform: scale(1.1) rotate(8deg); }
 .input-action:active { transform: scale(0.9); }
 
 #chat-input {
@@ -1107,11 +1056,7 @@ html, body {
   flex-shrink: 0;
 }
 
-.file-preview-remove:hover {
-  background: var(--red);
-  color: #fff;
-  transform: rotate(90deg) scale(1.08);
-}
+.file-preview-remove:hover { background: var(--red); color: #fff; transform: rotate(90deg) scale(1.08); }
 
 /* ═══════════════════════════════════════════════════════════════════
    RECORDING BAR
@@ -1201,7 +1146,6 @@ html, body {
   transform: translateY(20px) scale(0.85);
   transition: all 0.35s var(--spring);
   z-index: 30;
-  position: absolute;
 }
 
 .scroll-btn.visible {
@@ -1210,11 +1154,7 @@ html, body {
   transform: translateY(0) scale(1);
 }
 
-.scroll-btn:hover {
-  background: var(--accent);
-  color: #fff;
-  box-shadow: var(--glow);
-}
+.scroll-btn:hover { background: var(--accent); color: #fff; box-shadow: var(--glow); }
 
 .scroll-btn .unread-badge {
   position: absolute;
@@ -2123,7 +2063,7 @@ html, body {
     </div>
   </div>
 
-  <!-- ── Scroll button (با badge) ── -->
+  <!-- ── Scroll button ── -->
   <button class="scroll-btn" id="scroll-btn" title="برو به آخر" aria-label="برو به آخر">
     ↓
     <span class="unread-badge" id="unread-badge"></span>
@@ -2142,7 +2082,6 @@ html, body {
   <!-- ── Input bar ── -->
   <div class="input-bar">
 
-    <!-- Reply/Edit preview -->
     <div class="compose-preview" id="compose-preview">
       <span class="compose-preview-icon" id="compose-preview-icon">↩</span>
       <span class="compose-preview-text" id="compose-preview-text"></span>
@@ -2348,7 +2287,6 @@ html, body {
   const confirmCancel  = $('confirm-cancel');
   const confirmOk      = $('confirm-ok');
 
-  /* Call elements */
   const callBtn         = $('call-btn');
   const videoBtn        = $('video-btn');
   const callModal       = $('call-modal');
@@ -2382,9 +2320,8 @@ html, body {
   let isTyping    = false;
   let isAtBottom  = true;
   const renderedIds = new Set();
-  const msgCache = new Map();  // id -> msg object (برای reply/edit/delete)
+  const msgCache = new Map();
 
-  /* Voice recording */
   let mediaRecorder = null;
   let recChunks     = [];
   let recStream     = null;
@@ -2392,22 +2329,21 @@ html, body {
   let recSeconds    = 0;
   const MAX_REC_SECONDS = 60;
 
-  /* Compose state */
-  let replyTo = null;   // { id, username, snippet, type }
-  let editingId = null; // msg id در حال ویرایش
+  let replyTo = null;
+  let editingId = null;
 
-  /* Profiles */
   let profiles = {};
   let onlineUsers = [];
   let allowedReactions = ['❤️', '😂', '👍', '😮', '😢', '🔥'];
 
-  /* Unread counter */
   let unreadCount = 0;
   let originalTitle = document.title;
 
-  /* Notification state */
+  /* Push / Notification state */
   let notificationsEnabled = false;
   let swRegistration = null;
+  let pushSubscription = null;
+  let vapidPublicKey = null;
 
   /* WebRTC */
   let pc = null;
@@ -2510,10 +2446,7 @@ html, body {
     const nearBottom = messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight < 100;
     isAtBottom = nearBottom;
     scrollBtn.classList.toggle('visible', !nearBottom);
-
-    if (nearBottom && unreadCount > 0) {
-      resetUnread();
-    }
+    if (nearBottom && unreadCount > 0) resetUnread();
   }
 
   function resetUnread() {
@@ -2529,152 +2462,185 @@ html, body {
   }
 
   messagesEl.addEventListener('scroll', updateScrollBtn);
-  scrollBtn.addEventListener('click', () => {
-    scrollToBottom(true);
-    resetUnread();
-  });
+  scrollBtn.addEventListener('click', () => { scrollToBottom(true); resetUnread(); });
 
-  /* ═══════════ SERVICE WORKER & NOTIFICATIONS ═══════════ */
-  async function initServiceWorker() {
+  /* ═══════════════════════════════════════════════════════════════════
+     PUSH API + NOTIFICATIONS
+     ═══════════════════════════════════════════════════════════════════ */
+
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+
+  async function initServiceWorkerAndPush() {
     if (!('serviceWorker' in navigator)) {
-      console.warn('[Notif] Service Worker پشتیبانی نمی‌شود');
+      console.warn('[Push] Service Worker پشتیبانی نمی‌شود');
       return;
     }
+    if (!('PushManager' in window)) {
+      console.warn('[Push] Push API پشتیبانی نمی‌شود');
+      return;
+    }
+
     try {
       swRegistration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
       console.log('[SW] registered');
+      await navigator.serviceWorker.ready;
     } catch (err) {
       console.warn('[SW] register failed:', err);
+      return;
+    }
+
+    // دریافت کلید عمومی VAPID از سرور
+    try {
+      const r = await fetch('/api/push/vapid-public-key', { cache: 'no-store' });
+      if (r.ok) {
+        const data = await r.json();
+        vapidPublicKey = data.publicKey || null;
+      }
+    } catch (e) {
+      console.warn('[Push] دریافت VAPID failed', e);
+    }
+
+    // بررسی subscription فعلی
+    try {
+      const existing = await swRegistration.pushManager.getSubscription();
+      if (existing) {
+        pushSubscription = existing;
+        notificationsEnabled = (Notification.permission === 'granted');
+        updateNotifButtonState();
+        // ارسال دوباره به سرور (برای وقتی که سرور ری‌استارت شده)
+        sendSubscriptionToServer(existing);
+      }
+    } catch (e) {}
+  }
+
+  async function sendSubscriptionToServer(subscription) {
+    if (!socket || !socket.connected) return;
+    try {
+      const data = {
+        subscription: subscription.toJSON(),
+        sid: socket.id,
+      };
+      await fetch('/api/push/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      console.log('[Push] subscription ذخیره شد');
+    } catch (e) {
+      console.warn('[Push] ذخیره subscription failed', e);
+    }
+  }
+
+  async function subscribeToPush() {
+    if (!swRegistration || !vapidPublicKey) {
+      toast('Push آماده نیست (VAPID یا SW)', 'error');
+      return false;
+    }
+    if (!('Notification' in window)) return false;
+
+    // مجوز
+    if (Notification.permission !== 'granted') {
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') {
+        toast('نوتیفیکیشن رد شد', 'error');
+        return false;
+      }
+    }
+
+    try {
+      const subscription = await swRegistration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+      });
+      pushSubscription = subscription;
+      notificationsEnabled = true;
+      updateNotifButtonState();
+      await sendSubscriptionToServer(subscription);
+      toast('نوتیفیکیشن فعال شد ✅ (حتی وقتی سایت بسته است)', 'success');
+      return true;
+    } catch (err) {
+      console.warn('[Push] subscribe failed:', err);
+      // اگر VAPID مشکلی داشت، به Notifications ساده fallback
+      toast('Push در دسترس نیست — فقط در صفحه', 'error');
+      return false;
     }
   }
 
   function updateNotifButtonState() {
     if (!('Notification' in window)) {
       notifBtn.style.opacity = '0.3';
-      notifBtn.title = 'مرورگر از نوتیفیکیشن پشتیبانی نمی‌کند';
+      notifBtn.title = 'مرورگر پشتیبانی نمی‌کند';
       return;
     }
     const perm = Notification.permission;
-    if (perm === 'granted') {
+    if (perm === 'granted' && pushSubscription) {
       notificationsEnabled = true;
       notifBtn.classList.add('enabled');
-      notifBtn.title = 'نوتیفیکیشن فعال';
+      notifBtn.title = 'نوتیفیکیشن فعال (Push)';
+    } else if (perm === 'granted') {
+      notificationsEnabled = true;
+      notifBtn.classList.add('enabled');
+      notifBtn.title = 'نوتیفیکیشن فعال (بدون Push)';
     } else {
       notificationsEnabled = false;
       notifBtn.classList.remove('enabled');
       notifBtn.title = perm === 'denied'
-        ? 'نوتیفیکیشن رد شده (از تنظیمات مرورگر فعال کن)'
+        ? 'از تنظیمات مرورگر فعال کن'
         : 'فعال‌سازی نوتیفیکیشن';
     }
   }
 
-  async function requestNotificationPermission() {
+  async function onNotifBtnClick() {
     if (!('Notification' in window)) {
-      toast('مرورگر از نوتیفیکیشن پشتیبانی نمی‌کند', 'error');
-      return;
-    }
-    if (Notification.permission === 'granted') {
-      toast('نوتیفیکیشن فعال است ✅', 'success');
+      toast('مرورگر پشتیبانی نمی‌کند', 'error');
       return;
     }
     if (Notification.permission === 'denied') {
       toast('از تنظیمات مرورگر نوتیفیکیشن را فعال کن', 'error');
       return;
     }
-    try {
-      const perm = await Notification.requestPermission();
-      updateNotifButtonState();
-      if (perm === 'granted') {
-        toast('نوتیفیکیشن فعال شد ✅', 'success');
-        showWelcomeNotification();
-      } else {
-        toast('نوتیفیکیشن رد شد', 'error');
-      }
-    } catch (err) {
-      console.warn('requestPermission failed', err);
-      toast('خطا در فعال‌سازی نوتیفیکیشن', 'error');
-    }
-  }
 
-  function showWelcomeNotification() {
-    if (!notificationsEnabled || !swRegistration) return;
-    try {
-      swRegistration.active && swRegistration.active.postMessage({
-        type: 'SHOW_NOTIFICATION',
-        payload: {
-          title: 'نوتیفیکیشن فعال شد 💜',
-          body: 'از این به بعد پیام‌های جدید را می‌بینی',
-          tag: 'welcome',
-          data: { url: '/' },
-        },
-      });
-    } catch (err) {
-      // اگه SW نبود، با Notification مستقیم
-      if ('Notification' in window && Notification.permission === 'granted') {
-        try { new Notification('نوتیفیکیشن فعال شد 💜'); } catch {}
-      }
-    }
-  }
-
-  /**
-   * نمایش نوتیفیکیشن — فقط وقتی سایت بازه ولی فوکوس نداره.
-   * اگه کاربر روی تب فوکوس داره، نوتیفیکیشن نمی‌دیم.
-   */
-  function maybeNotifyMessage(msg) {
-    if (!notificationsEnabled) return;
-    if (!document.hidden) return;  // سایت در حال مشاهده است → نوتیفیکیشن نده
-
-    const title = msg.username || 'پیام جدید';
-    let body = '';
-    if (msg.type === 'text') {
-      body = (msg.text || '').substring(0, 100);
-    } else if (msg.type === 'image') {
-      body = '🖼 عکس فرستاد';
-    } else if (msg.type === 'video') {
-      body = '🎬 ویدیو فرستاد';
-    } else if (msg.type === 'audio') {
-      body = '🎙 پیام صوتی فرستاد';
-    } else {
-      body = 'پیام جدید';
-    }
-
-    const icon = msg.avatar || '/favicon.ico';
-
-    if (swRegistration && swRegistration.active) {
+    if (Notification.permission === 'granted' && pushSubscription) {
+      // از قبل فعال — پیشنهاد خاموش
       try {
-        swRegistration.active.postMessage({
-          type: 'SHOW_NOTIFICATION',
-          payload: {
-            title,
-            body,
-            icon,
-            tag: 'msg-' + (msg.id || Date.now()),
-            data: { url: '/' },
-          },
-        });
+        await pushSubscription.unsubscribe();
+        pushSubscription = null;
+        notificationsEnabled = false;
+        updateNotifButtonState();
+        if (socket) {
+          fetch('/api/push/unsubscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sid: socket.id }),
+          }).catch(() => {});
+        }
+        toast('نوتیفیکیشن خاموش شد');
       } catch (e) {}
-    } else if ('Notification' in window && Notification.permission === 'granted') {
-      try {
-        const n = new Notification(title, {
-          body,
-          icon,
-          tag: 'msg-' + (msg.id || Date.now()),
-          dir: 'rtl',
-          lang: 'fa',
-        });
-        n.onclick = () => { window.focus(); n.close(); };
-      } catch {}
+      return;
     }
+
+    await subscribeToPush();
   }
 
-  // پیام از Service Worker وقتی روی نوتیفیکیشن کلیک شد
-  navigator.serviceWorker?.addEventListener?.('message', (event) => {
-    if (event.data && event.data.type === 'NOTIFICATION_CLICKED') {
-      window.focus();
-    }
-  });
+  notifBtn.addEventListener('click', onNotifBtnClick);
 
-  notifBtn.addEventListener('click', requestNotificationPermission);
+  // پیام از Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'NOTIFICATION_CLICKED') {
+        window.focus();
+      }
+    });
+  }
 
   /* ═══════════ NAME MODAL ═══════════ */
   function openNameModal() {
@@ -2737,10 +2703,7 @@ html, body {
 
   function closeConfirm(result) {
     confirmDialog.classList.remove('visible');
-    if (confirmResolve) {
-      confirmResolve(result);
-      confirmResolve = null;
-    }
+    if (confirmResolve) { confirmResolve(result); confirmResolve = null; }
   }
 
   confirmOk.addEventListener('click', () => closeConfirm(true));
@@ -2772,6 +2735,10 @@ html, body {
       } else {
         openNameModal();
       }
+      // اگر subscription داشتیم، با sid جدید دوباره بفرست
+      if (pushSubscription) {
+        setTimeout(() => sendSubscriptionToServer(pushSubscription), 500);
+      }
     });
 
     socket.on('disconnect', () => {
@@ -2801,7 +2768,6 @@ html, body {
         onlineUsers = data.online_users;
         updateOnlineUsers(data.online_users);
       }
-      // اسکرول به پایین
       setTimeout(() => scrollToBottom(false), 100);
     });
 
@@ -2819,16 +2785,17 @@ html, body {
       if (msg.username !== username && msg.id && !msg.system) {
         socket.emit('mark_read', { id: msg.id });
       }
-      // unread + notification
       if (msg.username !== username && !msg.system) {
         if (!isAtBottom) incrementUnread();
       }
     });
 
+    // Notification درون‌صفحه — فقط وقتی سایت باز است (پشتیبان Push)
     socket.on('notification', (data) => {
-      // فقط وقتی پیام از طرف دیگه و سایت در فوکوس نیست
       if (data.username === username) return;
-      maybeNotifyMessage(data);
+      if (!notificationsEnabled) return;
+      if (document.hidden) return; // Push کار می‌کند
+      // سایت در فوکوس است → نوتیفیکیشن نده
     });
 
     socket.on('typing_update', (data) => {
@@ -2850,24 +2817,20 @@ html, body {
 
     socket.on('chat_error', (data) => toast(data.message || 'خطا', 'error'));
 
-    /* ── Reactions ── */
     socket.on('message_reaction', (data) => {
       const row = document.querySelector(`[data-msg-id="${data.id}"]`);
       if (!row) return;
-      // به‌روزرسانی cache
       const cached = msgCache.get(data.id);
       if (cached) cached.reactions = data.reactions;
       renderReactions(row, data.reactions);
     });
 
-    /* ── Edit ── */
     socket.on('message_edited', (data) => {
       const row = document.querySelector(`[data-msg-id="${data.id}"]`);
       if (!row) return;
       const bubble = row.querySelector('.msg-bubble');
       if (bubble) {
         bubble.textContent = data.content;
-        // اضافه کردن برچسب «ویرایش شد»
         let meta = row.querySelector('.msg-meta');
         if (meta && !meta.querySelector('.msg-edited')) {
           const editedLabel = document.createElement('span');
@@ -2877,30 +2840,19 @@ html, body {
         }
       }
       const cached = msgCache.get(data.id);
-      if (cached) {
-        cached.content = data.content;
-        cached.edited_at = data.edited_at;
-      }
+      if (cached) { cached.content = data.content; cached.edited_at = data.edited_at; }
     });
 
-    /* ── Delete ── */
     socket.on('message_deleted', (data) => {
       const row = document.querySelector(`[data-msg-id="${data.id}"]`);
       if (!row) return;
-
       const cached = msgCache.get(data.id);
-      if (cached) {
-        cached.deleted = true;
-        cached.content = '';
-      }
-
+      if (cached) { cached.deleted = true; cached.content = ''; }
       if (data.scope === 'everyone') {
-        // تبدیل bubble به حالت deleted
         const bubble = row.querySelector('.msg-bubble');
         if (bubble) {
           bubble.textContent = '🚫 این پیام حذف شد';
           bubble.classList.add('deleted');
-          // پاک کردن محتوای مدیا
           bubble.querySelectorAll('img, video, audio, .file-caption').forEach(el => el.remove());
         }
         const reactions = row.querySelector('.msg-reactions');
@@ -2908,12 +2860,10 @@ html, body {
         const actions = row.querySelector('.msg-actions');
         if (actions) actions.remove();
       } else {
-        // فقط برای من → کلاً حذف کن
         row.remove();
       }
     });
 
-    /* ── Call events ── */
     socket.on('incoming_call', (data) => {
       if (callState !== 'idle') {
         socket.emit('call_reject', { to_sid: data.from_sid });
@@ -2937,16 +2887,12 @@ html, body {
     });
 
     socket.on('call_rejected', () => {
-      if (callState === 'outgoing') {
-        toast('تماس رد شد', 'error');
-        cleanupCall(false);
-      }
+      if (callState === 'outgoing') { toast('تماس رد شد', 'error'); cleanupCall(false); }
     });
 
     socket.on('call_ended', () => {
       if (callState === 'active' || callState === 'outgoing') {
-        toast('تماس قطع شد');
-        cleanupCall(false);
+        toast('تماس قطع شد'); cleanupCall(false);
       }
     });
 
@@ -2959,10 +2905,7 @@ html, body {
         await flushPendingCandidates();
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
-        socket.emit('webrtc_answer', {
-          to_sid: data.from_sid,
-          answer: pc.localDescription,
-        });
+        socket.emit('webrtc_answer', { to_sid: data.from_sid, answer: pc.localDescription });
       } catch (err) { console.error('offer handler', err); }
     });
 
@@ -2996,7 +2939,7 @@ html, body {
     }
   }
 
-  /* ═══════════ RENDER MESSAGE ═══════════ */
+  /* ═══════════ RENDER ═══════════ */
   function getSnippet(msg) {
     if (!msg) return '';
     if (msg.deleted) return 'پیام حذف شده';
@@ -3041,7 +2984,6 @@ html, body {
 
     if (emptyEl && emptyEl.parentNode) emptyEl.remove();
 
-    // date divider
     const lastDivider = messagesEl.querySelector('.date-divider:last-of-type');
     const lastDate = lastDivider ? lastDivider.getAttribute('data-date') : null;
     const msgDate = fmtDate(msg.timestamp);
@@ -3069,7 +3011,6 @@ html, body {
     row.className = 'msg-row' + (mine ? ' mine' : '');
     if (msg.id) row.setAttribute('data-msg-id', msg.id);
 
-    // آواتار
     let avatarUrl = msg.avatar;
     if (!avatarUrl && msg.profile_id && profiles[msg.profile_id]) {
       avatarUrl = profiles[msg.profile_id].avatar;
@@ -3097,7 +3038,6 @@ html, body {
       wrap.appendChild(s);
     }
 
-    // reply block
     if (msg.reply_to) {
       const rb = document.createElement('div');
       rb.className = 'msg-reply-block';
@@ -3116,7 +3056,6 @@ html, body {
       wrap.appendChild(rb);
     }
 
-    // bubble
     const bubble = document.createElement('div');
     bubble.className = 'msg-bubble';
 
@@ -3166,10 +3105,8 @@ html, body {
 
     wrap.appendChild(bubble);
 
-    // reactions
     renderReactions(row, msg.reactions || {});
 
-    // meta
     const meta = document.createElement('div');
     meta.className = 'msg-meta';
     const t = document.createElement('span');
@@ -3195,12 +3132,10 @@ html, body {
 
     wrap.appendChild(meta);
 
-    // actions (reply, react, edit, delete)
     if (!msg.deleted) {
       const actions = document.createElement('div');
       actions.className = 'msg-actions';
 
-      // ری‌اکشن
       const reactBtn = document.createElement('button');
       reactBtn.className = 'msg-action-btn';
       reactBtn.innerHTML = '😊';
@@ -3211,7 +3146,6 @@ html, body {
       });
       actions.appendChild(reactBtn);
 
-      // ریپلای
       const replyBtn = document.createElement('button');
       replyBtn.className = 'msg-action-btn';
       replyBtn.innerHTML = '↩️';
@@ -3222,7 +3156,6 @@ html, body {
       });
       actions.appendChild(replyBtn);
 
-      // ویرایش (فقط مال خودم + متنی)
       if (mine && msg.type === 'text') {
         const editBtn = document.createElement('button');
         editBtn.className = 'msg-action-btn';
@@ -3235,7 +3168,6 @@ html, body {
         actions.appendChild(editBtn);
       }
 
-      // حذف
       const delBtn = document.createElement('button');
       delBtn.className = 'msg-action-btn';
       delBtn.innerHTML = '🗑️';
@@ -3248,7 +3180,6 @@ html, body {
 
       row.appendChild(actions);
 
-      // reaction picker
       const picker = document.createElement('div');
       picker.className = 'reaction-picker';
       allowedReactions.forEach(emoji => {
@@ -3276,22 +3207,15 @@ html, body {
     if (!isOpen) row.classList.add('picker-open');
   }
 
-  // بستن picker با کلیک بیرون
   document.addEventListener('click', (e) => {
     if (!e.target.closest('.msg-row')) {
       document.querySelectorAll('.msg-row.picker-open').forEach(r => r.classList.remove('picker-open'));
     }
   });
 
-  /* ═══════════ REPLY / EDIT COMPOSE ═══════════ */
   function startReply(msg) {
     editingId = null;
-    replyTo = {
-      id: msg.id,
-      username: msg.username || 'ناشناس',
-      snippet: getSnippet(msg),
-      type: msg.type,
-    };
+    replyTo = { id: msg.id, username: msg.username || 'ناشناس', snippet: getSnippet(msg), type: msg.type };
     composePreview.className = 'compose-preview visible reply-mode';
     composePreviewIcon.textContent = '↩';
     composePreviewText.innerHTML = `<strong>${escapeHtml(msg.username || '')}:</strong> ${escapeHtml(getSnippet(msg))}`;
@@ -3324,7 +3248,6 @@ html, body {
 
   composePreviewClose.addEventListener('click', cancelCompose);
 
-  /* ═══════════ DELETE ═══════════ */
   async function handleDelete(msg, mine) {
     if (!mine) {
       const ok = await showConfirm({
@@ -3337,19 +3260,15 @@ html, body {
       if (ok) socket.emit('delete_message', { id: msg.id, scope: 'me' });
       return;
     }
-
     const ok = await showConfirm({
       icon: '🗑️',
       title: 'حذف پیام',
       message: 'آیا می‌خواهی این پیام برای همه حذف شود؟ این عمل قابل بازگشت نیست.',
       okText: 'حذف برای همه',
     });
-    if (ok) {
-      socket.emit('delete_message', { id: msg.id, scope: 'everyone' });
-    }
+    if (ok) socket.emit('delete_message', { id: msg.id, scope: 'everyone' });
   }
 
-  /* ═══════════ LIGHTBOX ═══════════ */
   function openLightbox(src, type) {
     const old = lightbox.querySelector('img, video');
     if (old) old.remove();
@@ -3383,7 +3302,6 @@ html, body {
     }
   });
 
-  /* ═══════════ INPUT ═══════════ */
   function autoResize() {
     chatInput.style.height = 'auto';
     chatInput.style.height = Math.min(chatInput.scrollHeight, 130) + 'px';
@@ -3426,7 +3344,6 @@ html, body {
     if (e.key === 'Escape') cancelCompose();
   });
 
-  /* ═══════════ FILE ═══════════ */
   function resetFileThumb() {
     const oldThumb = document.getElementById('file-thumb');
     const newThumb = document.createElement('div');
@@ -3453,14 +3370,12 @@ html, body {
       fileInput.value = '';
       return;
     }
-
     const reader = new FileReader();
     reader.onload = () => {
       pendingFile = { file, dataUrl: reader.result, type: isVideo ? 'video' : 'image' };
       filePreview.classList.add('visible');
       fileName.textContent = file.name;
       fileSize.textContent = fmtBytes(file.size);
-
       const oldThumb = document.getElementById('file-thumb');
       if (isImage) {
         const img = document.createElement('img');
@@ -3484,7 +3399,7 @@ html, body {
     updateSendBtn();
   });
 
-  /* ═══════════ VOICE RECORDING ═══════════ */
+  /* ═══════════ VOICE ═══════════ */
   function startRecordingUI() {
     recordingBar.classList.add('visible');
     micBtn.style.color = 'var(--red)';
@@ -3504,10 +3419,7 @@ html, body {
     micBtn.textContent = '🎙️';
     clearInterval(recTimer);
     recTimer = null;
-    if (recStream) {
-      recStream.getTracks().forEach(t => t.stop());
-      recStream = null;
-    }
+    if (recStream) { recStream.getTracks().forEach(t => t.stop()); recStream = null; }
     mediaRecorder = null;
     recChunks = [];
   }
@@ -3516,24 +3428,20 @@ html, body {
     if (!socket || !socket.connected) { toast('اتصال برقرار نیست', 'error'); return; }
     if (mediaRecorder && mediaRecorder.state === 'recording') return;
     if (!navigator.mediaDevices || !window.MediaRecorder) {
-      toast('مرورگر شما از ضبط صدا پشتیبانی نمی‌کند', 'error');
-      return;
+      toast('مرورگر شما از ضبط صدا پشتیبانی نمی‌کند', 'error'); return;
     }
     if (!window.isSecureContext) {
-      toast('ضبط صدا فقط روی HTTPS یا localhost کار می‌کند', 'error');
-      return;
+      toast('ضبط صدا فقط روی HTTPS یا localhost کار می‌کند', 'error'); return;
     }
     try {
       recStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch {
-      toast('دسترسی به میکروفون داده نشد', 'error');
-      return;
+      toast('دسترسی به میکروفون داده نشد', 'error'); return;
     }
     const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg']
       .find(t => MediaRecorder.isTypeSupported(t)) || '';
     try {
-      mediaRecorder = mime ? new MediaRecorder(recStream, { mimeType: mime })
-                           : new MediaRecorder(recStream);
+      mediaRecorder = mime ? new MediaRecorder(recStream, { mimeType: mime }) : new MediaRecorder(recStream);
     } catch {
       toast('ضبط صدا در این مرورگر ممکن نیست', 'error');
       cleanupRecording();
@@ -3552,13 +3460,11 @@ html, body {
       if (!shouldSend) return;
       if (blob.size < 500) { toast('ضبط خیلی کوتاه بود', 'error'); return; }
       if (blob.size > 8 * 1024 * 1024) {
-        toast('ویس خیلی بزرگ است (حداکثر ۸MB)', 'error');
-        return;
+        toast('ویس خیلی بزرگ است (حداکثر ۸MB)', 'error'); return;
       }
       const reader = new FileReader();
       reader.onload = () => {
-        const ext = mimeType.includes('mp4') ? 'm4a'
-                  : mimeType.includes('ogg') ? 'ogg' : 'webm';
+        const ext = mimeType.includes('mp4') ? 'm4a' : mimeType.includes('ogg') ? 'ogg' : 'webm';
         const payload = {
           type: 'audio',
           content: reader.result,
@@ -3596,14 +3502,9 @@ html, body {
     cleanupCall(true);
   });
 
-  /* ═══════════ SEND ═══════════ */
   function sendMessage() {
-    if (!socket || !socket.connected) {
-      toast('اتصال برقرار نیست', 'error');
-      return;
-    }
+    if (!socket || !socket.connected) { toast('اتصال برقرار نیست', 'error'); return; }
 
-    // حالت ویرایش
     if (editingId) {
       const newText = chatInput.value.trim();
       if (!newText) { toast('متن نمی‌تواند خالی باشد', 'error'); return; }
@@ -3639,17 +3540,14 @@ html, body {
     cancelCompose();
     chatInput.focus();
 
-    if (isTyping && socket) {
-      isTyping = false;
-      socket.emit('typing', { typing: false });
-    }
+    if (isTyping && socket) { isTyping = false; socket.emit('typing', { typing: false }); }
     clearTimeout(typingTimer);
   }
 
   sendBtn.addEventListener('click', sendMessage);
 
   /* ═══════════════════════════════════════════════════════════════════
-     WEBRTC (بدون تغییر نسبت به قبل)
+     WEBRTC
      ═══════════════════════════════════════════════════════════════════ */
   function buildCallActions(mode, direction) {
     callActions.innerHTML = '';
@@ -3701,7 +3599,6 @@ html, body {
       callModal.classList.remove('visible');
       return;
     }
-
     const otherName = others[0];
     const otherAvatar = getProfileAvatar(otherName);
 
@@ -3711,8 +3608,7 @@ html, body {
     callAvatar.innerHTML = '';
     if (otherAvatar) {
       const img = document.createElement('img');
-      img.src = otherAvatar;
-      img.alt = otherName;
+      img.src = otherAvatar; img.alt = otherName;
       callAvatar.appendChild(img);
     } else {
       callAvatar.textContent = avatarLetter(otherName);
@@ -3740,8 +3636,7 @@ html, body {
     callAvatar.innerHTML = '';
     if (avatar) {
       const img = document.createElement('img');
-      img.src = avatar;
-      img.alt = data.from_name;
+      img.src = avatar; img.alt = data.from_name;
       callAvatar.appendChild(img);
     } else {
       callAvatar.textContent = avatarLetter(data.from_name);
@@ -3808,9 +3703,7 @@ html, body {
   }
 
   function rejectIncomingCall() {
-    if (incomingFrom) {
-      socket.emit('call_reject', { to_sid: incomingFrom.from_sid });
-    }
+    if (incomingFrom) socket.emit('call_reject', { to_sid: incomingFrom.from_sid });
     cleanupCall(false);
     toast('تماس رد شد');
   }
@@ -3831,8 +3724,7 @@ html, body {
     remotePlaceholderAvatar.innerHTML = '';
     if (avatar) {
       const img = document.createElement('img');
-      img.src = avatar;
-      img.alt = name;
+      img.src = avatar; img.alt = name;
       remotePlaceholderAvatar.appendChild(img);
     } else {
       remotePlaceholderAvatar.textContent = avatarLetter(name);
@@ -3867,18 +3759,12 @@ html, body {
   }
 
   function createPeerConnection() {
-    if (pc) {
-      try { pc.close(); } catch {}
-      pc = null;
-    }
+    if (pc) { try { pc.close(); } catch {} pc = null; }
     pc = new RTCPeerConnection({ iceServers });
 
     pc.onicecandidate = (e) => {
       if (e.candidate && remoteSid) {
-        socket.emit('webrtc_ice', {
-          to_sid: remoteSid,
-          candidate: e.candidate,
-        });
+        socket.emit('webrtc_ice', { to_sid: remoteSid, candidate: e.candidate });
       }
     };
 
@@ -3908,9 +3794,7 @@ html, body {
   }
 
   async function createOffer(wantVideo) {
-    if (!localStream) {
-      localStream = await getLocalMedia(wantVideo);
-    }
+    if (!localStream) localStream = await getLocalMedia(wantVideo);
     createPeerConnection();
     localStream.getTracks().forEach((track) => pc.addTrack(track, localStream));
 
@@ -3929,32 +3813,21 @@ html, body {
 
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
-    socket.emit('webrtc_offer', {
-      to_sid: remoteSid,
-      offer: pc.localDescription,
-    });
+    socket.emit('webrtc_offer', { to_sid: remoteSid, offer: pc.localDescription });
   }
 
   async function flushPendingCandidates() {
     if (!pc || !pc.remoteDescription) return;
     const list = pendingCandidates.splice(0);
-    for (const c of list) {
-      try { await pc.addIceCandidate(c); } catch {}
-    }
+    for (const c of list) { try { await pc.addIceCandidate(c); } catch {} }
   }
 
   function cleanupCall(notifyPeer) {
     if (notifyPeer && socket && (callState === 'active' || callState === 'outgoing')) {
       try { socket.emit('call_end'); } catch {}
     }
-    if (pc) {
-      try { pc.close(); } catch {}
-      pc = null;
-    }
-    if (localStream) {
-      localStream.getTracks().forEach(t => t.stop());
-      localStream = null;
-    }
+    if (pc) { try { pc.close(); } catch {} pc = null; }
+    if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
     if (remoteVideo) remoteVideo.srcObject = null;
     if (remoteAudio) remoteAudio.srcObject = null;
     if (localVideo) localVideo.srcObject = null;
@@ -4032,10 +3905,7 @@ html, body {
           videoSender = sender;
           const offer = await pc.createOffer();
           await pc.setLocalDescription(offer);
-          socket.emit('webrtc_offer', {
-            to_sid: remoteSid,
-            offer: pc.localDescription,
-          });
+          socket.emit('webrtc_offer', { to_sid: remoteSid, offer: pc.localDescription });
         }
       } catch (err) {
         console.warn('روشن کردن دوربین ناموفق:', err);
@@ -4053,8 +3923,10 @@ html, body {
   connectSocket();
   autoResize();
   updateSendBtn();
-  updateNotifButtonState();
-  initServiceWorker();
+  initServiceWorkerAndPush().then(updateNotifButtonState).catch((e) => {
+    console.warn('init failed', e);
+    updateNotifButtonState();
+  });
   if (!username) openNameModal();
 
 })();
