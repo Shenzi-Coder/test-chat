@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#05060c" />
+<title>بازی جوکر 🃏</title>
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50' y='68' font-size='56' text-anchor='middle'>🃏</text></svg>" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    background: #05060c;
+    overflow: hidden;
+    font-family: 'Vazirmatn', sans-serif;
+    direction: rtl;
+  }
+
+  .game-wrap {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 1;
+  }
+
+  iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+  }
+
+  /* دکمه‌ی بازگشت */
+  .back-btn {
+    position: fixed;
+    top: calc(14px + env(safe-area-inset-top, 0px));
+    right: 14px;
+    z-index: 9999;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    background: rgba(24, 29, 46, 0.92);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 999px;
+    color: #f0f3ff;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  }
+
+  .back-btn:hover {
+    background: rgba(16, 185, 129, 0.95);
+    border-color: #10b981;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(16, 185, 129, 0.6);
+  }
+
+  .back-btn:active { transform: scale(0.95); }
+
+  .back-btn .icon { font-size: 15px; }
+
+  /* لودینگ */
+  .loader {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: #05060c;
+    color: #a3abc6;
+    font-size: 14px;
+    z-index: 5000;
+    transition: opacity 0.4s ease;
+  }
+
+  .loader.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .loader-content {
+    text-align: center;
+  }
+
+  .loader-emoji {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 16px;
+    animation: jokerSpin 2s ease-in-out infinite;
+  }
+
+  @keyframes jokerSpin {
+    0%, 100% { transform: rotate(-15deg) scale(1); }
+    50%      { transform: rotate(15deg) scale(1.1); }
+  }
+
+  .loader-dots {
+    display: inline-flex;
+    gap: 4px;
+    margin-top: 12px;
+  }
+
+  .loader-dots span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #10b981;
+    animation: dotBounce 1.2s ease-in-out infinite;
+  }
+
+  .loader-dots span:nth-child(2) { animation-delay: 0.15s; background: #8b5cf6; }
+  .loader-dots span:nth-child(3) { animation-delay: 0.3s; background: #ef4444; }
+
+  @keyframes dotBounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30%           { transform: translateY(-8px); opacity: 1; }
+  }
+
+  @media (max-width: 480px) {
+    .back-btn {
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- لودینگ -->
+<div class="loader" id="loader">
+  <div class="loader-content">
+    <span class="loader-emoji">🃏</span>
+    <div>در حال بارگذاری بازی...</div>
+    <div class="loader-dots">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+</div>
+
+<!-- دکمه بازگشت -->
+<a href="/games" class="back-btn" id="back-btn">
+  <span class="icon">←</span>
+  <span>بازگشت به لیست بازی‌ها</span>
+</a>
+
+<!-- بازی -->
+<div class="game-wrap">
+  <iframe
+    id="game-frame"
+    src="https://chromedino.com/joker/embed/"
+    frameborder="0"
+    scrolling="no"
+    loading="lazy"
+    allow="autoplay; fullscreen"
+    title="بازی جوکر"
+  ></iframe>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const loader = document.getElementById('loader');
+  const frame = document.getElementById('game-frame');
+  const backBtn = document.getElementById('back-btn');
+
+  frame.addEventListener('load', () => {
+    setTimeout(() => loader.classList.add('hidden'), 400);
+  });
+
+  setTimeout(() => loader.classList.add('hidden'), 8000);
+
+  backBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    window.location.href = '/games';
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      window.location.href = '/games';
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
