@@ -43,6 +43,8 @@
     color: var(--text);
     direction: rtl;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
     padding: 28px 20px calc(28px + env(safe-area-inset-bottom, 0px));
     position: relative;
     overflow-x: hidden;
@@ -61,6 +63,8 @@
     z-index: 0;
   }
 
+  ::selection { background: rgba(139, 92, 246, 0.4); color: #fff; }
+
   .wrap {
     max-width: 900px;
     margin: 0 auto;
@@ -72,6 +76,60 @@
   @keyframes pageIn {
     from { opacity: 0; transform: translateY(24px); }
     to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Top nav ── */
+  .top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .back-home {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 15px;
+    background: rgba(24, 29, 46, 0.85);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 12.5px;
+    font-weight: 600;
+    transition: all 0.25s var(--spring);
+  }
+
+  .back-home:hover {
+    background: var(--bg-3);
+    color: var(--text);
+    border-color: var(--accent);
+    transform: translateX(3px);
+  }
+
+  .home-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 15px;
+    background: rgba(24, 29, 46, 0.85);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 12.5px;
+    font-weight: 600;
+    transition: all 0.25s var(--spring);
+  }
+
+  .home-link:hover {
+    background: var(--bg-3);
+    color: var(--text);
+    border-color: var(--accent);
+    transform: translateX(-3px);
   }
 
   /* ── Hero ── */
@@ -164,6 +222,10 @@
     background: radial-gradient(circle at center, rgba(16, 185, 129, 0.2), transparent 70%);
   }
 
+  .game-card.color::before {
+    background: radial-gradient(circle at center, rgba(236, 72, 153, 0.2), transparent 70%);
+  }
+
   .game-card:hover {
     transform: translateY(-7px);
     box-shadow: 0 22px 55px rgba(0, 0, 0, 0.55);
@@ -179,6 +241,11 @@
     box-shadow: 0 22px 55px rgba(16, 185, 129, 0.35);
   }
 
+  .game-card.color:hover {
+    border-color: var(--accent-3);
+    box-shadow: 0 22px 55px rgba(236, 72, 153, 0.35);
+  }
+
   .game-card:hover::before { opacity: 1; }
   .game-card > * { position: relative; z-index: 1; }
 
@@ -191,6 +258,13 @@
   }
 
   .game-card:hover .game-emoji { transform: scale(1.15) rotate(-6deg); }
+
+  .game-card.color:hover .game-emoji { animation: colorSpinIcon 1.2s linear infinite; }
+
+  @keyframes colorSpinIcon {
+    0%   { filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.4)) hue-rotate(0deg); }
+    100% { filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.4)) hue-rotate(360deg); }
+  }
 
   /* ── Game name ── */
   .game-name {
@@ -247,6 +321,7 @@
 
   .game-card.batman:hover .play-hint { color: var(--yellow); }
   .game-card.joker:hover .play-hint { color: var(--green); }
+  .game-card.color:hover .play-hint { color: var(--accent-3); }
 
   /* ── Footer ── */
   .footer-links {
@@ -266,36 +341,7 @@
 
   .footer-links a:hover { color: var(--accent-2); }
 
-  /* ── Back button ── */
-  .top-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-  }
-
-  .back-home {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 9px 15px;
-    background: rgba(24, 29, 46, 0.85);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    color: var(--text-dim);
-    text-decoration: none;
-    font-size: 12.5px;
-    font-weight: 600;
-    transition: all 0.25s var(--spring);
-  }
-
-  .back-home:hover {
-    background: var(--bg-3);
-    color: var(--text);
-    border-color: var(--accent);
-    transform: translateX(3px);
-  }
-
+  /* ── Responsive ── */
   @media (max-width: 560px) {
     h1 { font-size: 24px; }
     .hero-orb { width: 76px; height: 76px; font-size: 36px; margin-bottom: 18px; }
@@ -305,9 +351,11 @@
     .game-name { font-size: 17px; }
   }
 
+  /* ── Accessibility ── */
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }
   }
@@ -327,6 +375,10 @@
     <a href="/" class="back-home">
       <span>←</span>
       <span>بازگشت به چت</span>
+    </a>
+    <a href="/" class="home-link">
+      <span>صفحه اصلی</span>
+      <span>→</span>
     </a>
   </div>
 
@@ -351,6 +403,17 @@
       <div class="game-emoji">🃏</div>
       <div class="game-name">Joker</div>
       <div class="game-desc">با جوکر همراه شو و رکورد بتمن رو بشکن</div>
+      <span class="game-badge solo">🎯 تک‌نفره</span>
+      <span class="play-hint">
+        <span>▶</span>
+        <span>بازی کن</span>
+      </span>
+    </a>
+
+    <a href="/games/color" class="game-card color">
+      <div class="game-emoji">🎨</div>
+      <div class="game-name">Color</div>
+      <div class="game-desc">با رنگ‌ها بازی کن و رکورد بزن</div>
       <span class="game-badge solo">🎯 تک‌نفره</span>
       <span class="play-hint">
         <span>▶</span>
