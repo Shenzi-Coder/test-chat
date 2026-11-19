@@ -41,6 +41,7 @@
   --green: #10b981;
   --green-glow: rgba(16, 185, 129, 0.55);
   --red: #ef4444;
+  --yellow: #f59e0b;
 
   --grad-me: linear-gradient(135deg, #8b5cf6 0%, #a855f7 40%, #ec4899 100%);
   --grad-anil: linear-gradient(135deg, #ec4899, #f43f5e);
@@ -340,6 +341,14 @@ html, body {
   box-shadow: 0 0 8px var(--green);
 }
 
+.icon-btn.game-btn { color: var(--yellow); border-color: rgba(245, 158, 11, 0.35); }
+.icon-btn.game-btn:hover {
+  color: #fff;
+  border-color: var(--yellow);
+  box-shadow: 0 0 26px rgba(245, 158, 11, 0.55);
+}
+.icon-btn.game-btn:hover::before { background: linear-gradient(135deg, #f59e0b, #ef4444); opacity: 0.25; }
+
 .icon-btn.call-btn.ringing,
 .icon-btn.video-btn.ringing {
   animation: ringingPulse 1.2s ease-in-out infinite;
@@ -432,7 +441,6 @@ html, body {
   border: 1px solid var(--border-soft);
 }
 
-/* ── Message Row ── */
 .msg-row {
   display: flex;
   align-items: flex-end;
@@ -2036,6 +2044,9 @@ html, body {
     </div>
 
     <div class="header-actions">
+      <a class="icon-btn game-btn" id="game-btn" href="/games" target="_blank" title="بازی‌ها 🎮" aria-label="بازی‌ها">
+        <span>🎮</span>
+      </a>
       <button class="icon-btn notif-btn" id="notif-btn" title="فعال‌سازی نوتیفیکیشن" aria-label="نوتیفیکیشن">
         <span>🔔</span>
       </button>
@@ -2339,13 +2350,11 @@ html, body {
   let unreadCount = 0;
   let originalTitle = document.title;
 
-  /* Push / Notification state */
   let notificationsEnabled = false;
   let swRegistration = null;
   let pushSubscription = null;
   let vapidPublicKey = null;
 
-  /* WebRTC */
   let pc = null;
   let localStream = null;
   let hasLocalVideo = false;
@@ -2464,10 +2473,7 @@ html, body {
   messagesEl.addEventListener('scroll', updateScrollBtn);
   scrollBtn.addEventListener('click', () => { scrollToBottom(true); resetUnread(); });
 
-  /* ═══════════════════════════════════════════════════════════════════
-     PUSH API + NOTIFICATIONS
-     ═══════════════════════════════════════════════════════════════════ */
-
+  /* ═══════════ PUSH API ═══════════ */
   function urlBase64ToUint8Array(base64String) {
     const padding = '='.repeat((4 - base64String.length % 4) % 4);
     const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
@@ -2488,17 +2494,13 @@ html, body {
       console.warn('[Push] Push API پشتیبانی نمی‌شود');
       return;
     }
-
     try {
       swRegistration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
-      console.log('[SW] registered');
       await navigator.serviceWorker.ready;
     } catch (err) {
       console.warn('[SW] register failed:', err);
       return;
     }
-
-    // دریافت کلید عمومی VAPID از سرور
     try {
       const r = await fetch('/api/push/vapid-public-key', { cache: 'no-store' });
       if (r.ok) {
@@ -2508,15 +2510,12 @@ html, body {
     } catch (e) {
       console.warn('[Push] دریافت VAPID failed', e);
     }
-
-    // بررسی subscription فعلی
     try {
       const existing = await swRegistration.pushManager.getSubscription();
       if (existing) {
         pushSubscription = existing;
         notificationsEnabled = (Notification.permission === 'granted');
         updateNotifButtonState();
-        // ارسال دوباره به سرور (برای وقتی که سرور ری‌استارت شده)
         sendSubscriptionToServer(existing);
       }
     } catch (e) {}
@@ -2525,16 +2524,12 @@ html, body {
   async function sendSubscriptionToServer(subscription) {
     if (!socket || !socket.connected) return;
     try {
-      const data = {
-        subscription: subscription.toJSON(),
-        sid: socket.id,
-      };
+      const data = { subscription: subscription.toJSON(), sid: socket.id };
       await fetch('/api/push/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      console.log('[Push] subscription ذخیره شد');
     } catch (e) {
       console.warn('[Push] ذخیره subscription failed', e);
     }
@@ -2546,8 +2541,6 @@ html, body {
       return false;
     }
     if (!('Notification' in window)) return false;
-
-    // مجوز
     if (Notification.permission !== 'granted') {
       const perm = await Notification.requestPermission();
       if (perm !== 'granted') {
@@ -2555,7 +2548,6 @@ html, body {
         return false;
       }
     }
-
     try {
       const subscription = await swRegistration.pushManager.subscribe({
         userVisibleOnly: true,
@@ -2569,7 +2561,6 @@ html, body {
       return true;
     } catch (err) {
       console.warn('[Push] subscribe failed:', err);
-      // اگر VAPID مشکلی داشت، به Notifications ساده fallback
       toast('Push در دسترس نیست — فقط در صفحه', 'error');
       return false;
     }
@@ -2608,9 +2599,7 @@ html, body {
       toast('از تنظیمات مرورگر نوتیفیکیشن را فعال کن', 'error');
       return;
     }
-
     if (Notification.permission === 'granted' && pushSubscription) {
-      // از قبل فعال — پیشنهاد خاموش
       try {
         await pushSubscription.unsubscribe();
         pushSubscription = null;
@@ -2627,13 +2616,11 @@ html, body {
       } catch (e) {}
       return;
     }
-
     await subscribeToPush();
   }
 
   notifBtn.addEventListener('click', onNotifBtnClick);
 
-  // پیام از Service Worker
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.addEventListener('message', (event) => {
       if (event.data && event.data.type === 'NOTIFICATION_CLICKED') {
@@ -2735,7 +2722,6 @@ html, body {
       } else {
         openNameModal();
       }
-      // اگر subscription داشتیم، با sid جدید دوباره بفرست
       if (pushSubscription) {
         setTimeout(() => sendSubscriptionToServer(pushSubscription), 500);
       }
@@ -2790,12 +2776,10 @@ html, body {
       }
     });
 
-    // Notification درون‌صفحه — فقط وقتی سایت باز است (پشتیبان Push)
     socket.on('notification', (data) => {
       if (data.username === username) return;
       if (!notificationsEnabled) return;
-      if (document.hidden) return; // Push کار می‌کند
-      // سایت در فوکوس است → نوتیفیکیشن نده
+      if (document.hidden) return;
     });
 
     socket.on('typing_update', (data) => {
