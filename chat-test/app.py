@@ -1,6 +1,6 @@
 # ─────────────────────────────────────────────
 #  Elshan & Anil — Personal Messenger
-#  app.py — Flask + Flask-SocketIO + WebRTC + Web Push
+#  app.py — Flask + Flask-SocketIO + WebRTC + Web Push + Games
 #  ⚠️ eventlet.monkey_patch() باید قبل از هر import دیگری باشد
 # ─────────────────────────────────────────────
 
@@ -196,12 +196,10 @@ def _clear_call(sid):
 #  Web Push
 # ─────────────────────────────────────────────
 def send_web_push(subscription_info, payload, ttl=86400):
-    """ارسال push به یک subscription."""
     if not WEBPUSH_AVAILABLE:
         return False
     if not VAPID_PUBLIC_KEY or not os.path.exists(VAPID_PRIVATE_KEY_PATH):
         return False
-
     try:
         webpush(
             subscription_info=subscription_info,
@@ -212,10 +210,9 @@ def send_web_push(subscription_info, payload, ttl=86400):
         )
         return True
     except WebPushException as e:
-        # اگر subscription منقضی شده (410)، حذفش کن
         status = getattr(e.response, "status_code", None)
         if status in (404, 410):
-            return False  # نامعتبر
+            return False
         print(f"[WebPush] خطا: {e}")
         return False
     except Exception as e:
@@ -224,7 +221,6 @@ def send_web_push(subscription_info, payload, ttl=86400):
 
 
 def push_to_all_except(sender_sid, payload):
-    """ارسال push به همه‌ی subscriptionها به‌جز فرستنده."""
     if not WEBPUSH_AVAILABLE:
         return
     with lock:
@@ -234,7 +230,6 @@ def push_to_all_except(sender_sid, payload):
     for sid, sub in items:
         ok = send_web_push(sub, payload)
         if not ok:
-            # اگر نامعتبر بود (410/404)، برای حذف علامت بزن
             invalid.append(sid)
 
     if invalid:
@@ -286,7 +281,6 @@ def api_history():
 # ─────────────────────────────────────────────
 @app.route("/api/push/vapid-public-key")
 def api_vapid_public_key():
-    """کلید عمومی VAPID برای کلاینت."""
     if not VAPID_PUBLIC_KEY:
         return jsonify({"error": "VAPID public key تنظیم نشده"}), 500
     return jsonify({"publicKey": VAPID_PUBLIC_KEY})
@@ -294,7 +288,6 @@ def api_vapid_public_key():
 
 @app.route("/api/push/subscribe", methods=["POST"])
 def api_push_subscribe():
-    """ذخیره‌ی subscription."""
     data = request.get_json(silent=True) or {}
     subscription = data.get("subscription")
     sid = data.get("sid") or "anonymous"
@@ -325,7 +318,6 @@ def api_push_unsubscribe():
 
 @app.route("/api/push/test", methods=["POST"])
 def api_push_test():
-    """ارسال یک push تستی به همه."""
     payload = {
         "title": "تست Push 💜",
         "body": "اگر این را می‌بینی، Push کار می‌کند!",
@@ -370,6 +362,33 @@ def api_profiles():
             "online": (uid in online_ids) or (p["name"] in online_names),
         }
     return jsonify(result)
+
+
+# ─────────────────────────────────────────────
+#  Routes — Games
+# ─────────────────────────────────────────────
+@app.route("/games")
+def games_list():
+    """صفحه‌ی لیست بازی‌ها."""
+    return render_template("games.html")
+
+
+@app.route("/games/batman")
+def game_batman():
+    """بازی بتمن."""
+    return render_template("game_batman.html")
+
+
+@app.route("/games/joker")
+def game_joker():
+    """بازی جوکر."""
+    return render_template("game_joker.html")
+
+
+@app.route("/games/color")
+def game_color():
+    """بازی رنگ‌ها."""
+    return render_template("game_color.html")
 
 
 # ─────────────────────────────────────────────
@@ -567,7 +586,6 @@ def on_chat_message(data):
 
     socketio.emit("chat_message", payload, to="chat")
 
-    # Notification (in-page — فقط وقتی سایت باز است)
     notify_payload = {
         "id": msg_id,
         "username": username,
@@ -580,7 +598,6 @@ def on_chat_message(data):
     }
     socketio.emit("notification", notify_payload, to="chat", skip_sid=request.sid)
 
-    # Web Push (وقتی سایت بسته است)
     push_title = username or "پیام جدید"
     if msg_type == "text":
         push_body = content[:120]
@@ -600,7 +617,6 @@ def on_chat_message(data):
         "tag": f"msg-{msg_id}",
         "data": {"url": "/", "msg_id": msg_id},
     }
-    # در thread جدا تا بلاک نشه
     eventlet.spawn_n(push_to_all_except, request.sid, push_payload)
 
     socketio.emit("typing_update", {
